@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polla Mundial 2026 — Posiciones</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f4f8;
+      color: #1a2535;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a3c5e 0%, #2d6a9f 100%);
+      color: #fff;
+      padding: 24px 16px 20px;
+      text-align: center;
+    }
+    header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.5px; }
+    header p  { font-size: 0.85rem; opacity: 0.75; margin-top: 4px; }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 20px 12px 40px; }
+
+    .updated {
+      text-align: right;
+      font-size: 0.75rem;
+      color: #6b7a8d;
+      margin-bottom: 12px;
+    }
+
+    .estado {
+      text-align: center;
+      padding: 48px 16px;
+      color: #6b7a8d;
+      font-size: 0.95rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    thead tr {
+      background: #1a3c5e;
+      color: #fff;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    th { padding: 12px 10px; text-align: center; font-weight: 600; }
+    th:nth-child(2) { text-align: left; }
+
+    tbody tr { border-bottom: 1px solid #e8edf3; transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f5f8fc; }
+
+    td { padding: 13px 10px; text-align: center; font-size: 0.9rem; }
+    td:nth-child(2) { text-align: left; font-weight: 600; }
+
+    .pts-detail { color: #6b7a8d; font-size: 0.8rem; }
+    .pts-total  { font-weight: 700; font-size: 1rem; color: #1a3c5e; }
+    .pos        { font-weight: 700; font-size: 1rem; }
+    .medal-1    { color: #b8860b; }
+    .medal-2    { color: #6b7a8d; }
+    .medal-3    { color: #8b5c2a; }
+
+    tr.top1 { background: #fffbea; }
+    tr.top2 { background: #f8f8f8; }
+    tr.top3 { background: #fdf5ef; }
+    tr.top1:hover { background: #fff6d6; }
+    tr.top2:hover { background: #f0f0f0; }
+    tr.top3:hover { background: #f7ece2; }
+
+    @media (max-width: 480px) {
+      .hide-mobile { display: none; }
+      header h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Polla Mundial 2026</h1>
+  <p>Tabla de posiciones en tiempo real</p>
+</header>
+
+<div class="container">
+  <div class="updated" id="updated"></div>
+  <div id="contenido"><div class="estado">Cargando...</div></div>
+</div>
+
+<script>
+  // ⚠️ Reemplazar con la URL del Apps Script + ?format=json
+  var API_URL = 'https://script.google.com/macros/s/AKfycbwQsVMWYFkFSSlLrNahg1VQVv1dnYc1D3VZq3eY4ZopTBTtp6Qg0Kq-ICVSgkHRKVx8/exec?format=json';
+
+  fetch(API_URL)
+    .then(function(r) { return r.json(); })
+    .then(function(datos) { renderizar(datos); })
+    .catch(function() {
+      document.getElementById('contenido').innerHTML =
+        '<div class="estado">Error al cargar los datos. Intenta de nuevo.</div>';
+    });
+
+  function renderizar(datos) {
+    document.getElementById('updated').textContent = 'Actualizado: ' + datos.actualizado;
+
+    if (!datos.filas || datos.filas.length === 0) {
+      document.getElementById('contenido').innerHTML =
+        '<div class="estado">Aún no hay participantes habilitados.</div>';
+      return;
+    }
+
+    var medals = ['', '🥇', '🥈', '🥉'];
+    var medalClass = ['', 'medal-1', 'medal-2', 'medal-3'];
+    var rowClass   = ['', 'top1',    'top2',    'top3'];
+
+    var html = '<table><thead><tr>' +
+      '<th>#</th>' +
+      '<th>Participante</th>' +
+      '<th>Total</th>' +
+      '<th class="hide-mobile">Grupos</th>' +
+      '<th class="hide-mobile">R32</th>' +
+      '<th class="hide-mobile">Octavos</th>' +
+      '<th class="hide-mobile">Cuartos</th>' +
+      '<th class="hide-mobile">Semis</th>' +
+      '<th class="hide-mobile">Final</th>' +
+      '<th class="hide-mobile">Bonus</th>' +
+      '</tr></thead><tbody>';
+
+    datos.filas.forEach(function(f) {
+      var pos = f.posicion;
+      var icon = pos <= 3 ? medals[pos] : pos;
+      var mc   = pos <= 3 ? medalClass[pos] : '';
+      var rc   = pos <= 3 ? rowClass[pos]   : '';
+      html += '<tr class="' + rc + '">' +
+        '<td><span class="pos ' + mc + '">' + icon + '</span></td>' +
+        '<td>' + esc(f.nombre) + '<br><span style="font-size:0.75rem;color:#6b7a8d">' + esc(f.alias) + '</span></td>' +
+        '<td class="pts-total">'                     + f.total     + '</td>' +
+        '<td class="pts-detail hide-mobile">'        + f.ptsGrupos + '</td>' +
+        '<td class="pts-detail hide-mobile">'        + f.ptsR32    + '</td>' +
+        '<td class="pts-detail hide-mobile">'        + f.ptsR16    + '</td>' +
+        '<td class="pts-detail hide-mobile">'        + f.ptsQF     + '</td>' +
+        '<td class="pts-detail hide-mobile">'        + f.ptsSF     + '</td>' +
+        '<td class="pts-detail hide-mobile">'        + f.ptsFinal  + '</td>' +
+        '<td class="pts-detail hide-mobile">'        + f.ptsBonos  + '</td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('contenido').innerHTML = html;
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+
+</body>
+</html>
