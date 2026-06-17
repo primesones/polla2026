@@ -79,9 +79,126 @@
     tr.top2:hover { background: #f0f0f0; }
     tr.top3:hover { background: #f7ece2; }
 
+    .nombre-link {
+      cursor: pointer;
+      color: inherit;
+      text-decoration: none;
+      display: block;
+    }
+    .nombre-link:hover { text-decoration: underline; color: #2d6a9f; }
+    .alias-tag {
+      font-size: 0.75rem;
+      color: #6b7a8d;
+      font-weight: 400;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.activo { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #1a3c5e 0%, #2d6a9f 100%);
+      color: #fff;
+      padding: 18px 20px 14px;
+      border-radius: 14px 14px 0 0;
+      position: relative;
+    }
+    .modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .modal-header .sub { font-size: 0.8rem; opacity: 0.75; margin-top: 2px; }
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.35); }
+
+    .modal-body { padding: 20px; }
+
+    .total-badge {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .total-badge .pts { font-size: 2.2rem; font-weight: 800; color: #1a3c5e; }
+    .total-badge .lbl { font-size: 0.8rem; color: #6b7a8d; margin-top: 2px; }
+
+    .rondas-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .ronda-cell {
+      background: #f0f4f8;
+      border-radius: 8px;
+      padding: 8px 4px;
+      text-align: center;
+    }
+    .ronda-cell .r-pts { font-size: 1.1rem; font-weight: 700; color: #1a3c5e; }
+    .ronda-cell .r-lbl { font-size: 0.65rem; color: #6b7a8d; margin-top: 2px; text-transform: uppercase; }
+    .ronda-cell.tiene-pts { background: #e8f4fd; }
+    .ronda-cell.tiene-pts .r-pts { color: #1565c0; }
+
+    .seccion-titulo {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #6b7a8d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .partidos-lista { margin-bottom: 20px; }
+    .partido-fila {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      font-size: 0.88rem;
+    }
+    .partido-fila.con-pts { background: #e8f4fd; }
+    .partido-fila.sin-pts { background: #f8f9fa; color: #aaa; }
+    .partido-fila .p-pts {
+      font-weight: 700;
+      min-width: 36px;
+      text-align: right;
+    }
+    .partido-fila.con-pts .p-pts { color: #1565c0; }
+
+    .modal-cargando { text-align: center; padding: 40px 20px; color: #6b7a8d; }
+    .modal-error    { text-align: center; padding: 40px 20px; color: #c0392b; }
+
     @media (max-width: 480px) {
       .hide-mobile { display: none; }
       header h1 { font-size: 1.2rem; }
+      .rondas-grid { grid-template-columns: repeat(3, 1fr); }
     }
   </style>
 </head>
@@ -97,9 +214,34 @@
   <div id="contenido"><div class="estado">Cargando...</div></div>
 </div>
 
+<!-- Modal detalle individual -->
+<div class="modal-overlay" id="modalOverlay" onclick="cerrarModal(event)">
+  <div class="modal" id="modalCard">
+    <div class="modal-header" id="modalHeader">
+      <h2 id="modalNombre"></h2>
+      <div class="sub" id="modalSub"></div>
+      <button class="modal-close" onclick="cerrarModal(null)">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <div class="modal-cargando">Cargando detalle...</div>
+    </div>
+  </div>
+</div>
+
 <script>
-  // ⚠️ Reemplazar con la URL del Apps Script + ?format=json
-  var API_URL = 'https://script.google.com/macros/s/AKfycbwQsVMWYFkFSSlLrNahg1VQVv1dnYc1D3VZq3eY4ZopTBTtp6Qg0Kq-ICVSgkHRKVx8/exec?format=json';
+  var BASE_URL = 'https://script.google.com/macros/s/AKfycbwQsVMWYFkFSSlLrNahg1VQVv1dnYc1D3VZq3eY4ZopTBTtp6Qg0Kq-ICVSgkHRKVx8/exec';
+  var API_URL  = BASE_URL + '?format=json';
+
+  var GRUPO_LABELS = { 'COL-G01': 'vs Uzbekistán', 'COL-G02': 'vs Congo DR', 'COL-G03': 'vs Portugal' };
+  var RONDA_ORDEN  = [
+    { key: 'ptsGrupos', label: 'Grupos',    ids: ['COL-G01','COL-G02','COL-G03'] },
+    { key: 'ptsR32',    label: 'R32',       ids: null },
+    { key: 'ptsR16',    label: 'Octavos',   ids: null },
+    { key: 'ptsQF',     label: 'Cuartos',   ids: null },
+    { key: 'ptsSF',     label: 'Semis',     ids: null },
+    { key: 'ptsFinal',  label: 'Final',     ids: null },
+    { key: 'ptsBonos',  label: 'Bonus',     ids: null },
+  ];
 
   fetch(API_URL)
     .then(function(r) { return r.json(); })
@@ -118,7 +260,7 @@
       return;
     }
 
-    var medals = ['', '🥇', '🥈', '🥉'];
+    var medals    = ['', '🥇', '🥈', '🥉'];
     var medalClass = ['', 'medal-1', 'medal-2', 'medal-3'];
     var rowClass   = ['', 'top1',    'top2',    'top3'];
 
@@ -136,26 +278,116 @@
       '</tr></thead><tbody>';
 
     datos.filas.forEach(function(f) {
-      var pos = f.posicion;
+      var pos  = f.posicion;
       var icon = pos <= 3 ? medals[pos] : pos;
       var mc   = pos <= 3 ? medalClass[pos] : '';
       var rc   = pos <= 3 ? rowClass[pos]   : '';
       html += '<tr class="' + rc + '">' +
         '<td><span class="pos ' + mc + '">' + icon + '</span></td>' +
-        '<td>' + esc(f.nombre) + '<br><span style="font-size:0.75rem;color:#6b7a8d">' + esc(f.alias) + '</span></td>' +
-        '<td class="pts-total">'                     + f.total     + '</td>' +
-        '<td class="pts-detail hide-mobile">'        + f.ptsGrupos + '</td>' +
-        '<td class="pts-detail hide-mobile">'        + f.ptsR32    + '</td>' +
-        '<td class="pts-detail hide-mobile">'        + f.ptsR16    + '</td>' +
-        '<td class="pts-detail hide-mobile">'        + f.ptsQF     + '</td>' +
-        '<td class="pts-detail hide-mobile">'        + f.ptsSF     + '</td>' +
-        '<td class="pts-detail hide-mobile">'        + f.ptsFinal  + '</td>' +
-        '<td class="pts-detail hide-mobile">'        + f.ptsBonos  + '</td>' +
+        '<td>' +
+          '<span class="nombre-link" onclick="verDetalle(' + "'" + escJs(f.alias) + "'" + ')">' +
+            esc(f.nombre) +
+          '</span>' +
+          '<br><span class="alias-tag">' + esc(f.alias) + '</span>' +
+        '</td>' +
+        '<td class="pts-total">'              + f.total     + '</td>' +
+        '<td class="pts-detail hide-mobile">' + f.ptsGrupos + '</td>' +
+        '<td class="pts-detail hide-mobile">' + f.ptsR32    + '</td>' +
+        '<td class="pts-detail hide-mobile">' + f.ptsR16    + '</td>' +
+        '<td class="pts-detail hide-mobile">' + f.ptsQF     + '</td>' +
+        '<td class="pts-detail hide-mobile">' + f.ptsSF     + '</td>' +
+        '<td class="pts-detail hide-mobile">' + f.ptsFinal  + '</td>' +
+        '<td class="pts-detail hide-mobile">' + f.ptsBonos  + '</td>' +
         '</tr>';
     });
 
     html += '</tbody></table>';
     document.getElementById('contenido').innerHTML = html;
+  }
+
+  // ── Modal ──────────────────────────────────────────────
+
+  function verDetalle(alias) {
+    document.getElementById('modalNombre').textContent = alias;
+    document.getElementById('modalSub').textContent    = '';
+    document.getElementById('modalBody').innerHTML     = '<div class="modal-cargando">Cargando detalle...</div>';
+    document.getElementById('modalOverlay').classList.add('activo');
+
+    fetch(BASE_URL + '?format=detail&alias=' + encodeURIComponent(alias))
+      .then(function(r) { return r.json(); })
+      .then(function(d) { renderizarDetalle(d); })
+      .catch(function() {
+        document.getElementById('modalBody').innerHTML =
+          '<div class="modal-error">Error al cargar el detalle.</div>';
+      });
+  }
+
+  function renderizarDetalle(d) {
+    if (d.error) {
+      document.getElementById('modalBody').innerHTML =
+        '<div class="modal-error">' + esc(d.error) + '</div>';
+      return;
+    }
+
+    document.getElementById('modalNombre').textContent = d.nombre;
+    document.getElementById('modalSub').textContent    = d.alias + '  ·  Posición #' + d.posicion;
+
+    // Grilla de rondas
+    var rondasHtml = '<div class="rondas-grid">';
+    RONDA_ORDEN.forEach(function(r) {
+      var pts = d[r.key] || 0;
+      var cls = pts > 0 ? 'ronda-cell tiene-pts' : 'ronda-cell';
+      rondasHtml += '<div class="' + cls + '">' +
+        '<div class="r-pts">' + pts + '</div>' +
+        '<div class="r-lbl">' + r.label + '</div>' +
+        '</div>';
+    });
+    rondasHtml += '</div>';
+
+    // Detalle Colombia — grupos (siempre visible)
+    var gruposHtml = '<div class="seccion-titulo">Colombia — Grupos</div><div class="partidos-lista">';
+    ['COL-G01','COL-G02','COL-G03'].forEach(function(id) {
+      var pts = (d.matchPts && d.matchPts[id]) || 0;
+      var cls = pts > 0 ? 'partido-fila con-pts' : 'partido-fila sin-pts';
+      gruposHtml += '<div class="' + cls + '">' +
+        '<span>' + (GRUPO_LABELS[id] || id) + '</span>' +
+        '<span class="p-pts">' + pts + ' pts</span>' +
+        '</div>';
+    });
+    gruposHtml += '</div>';
+
+    // Detalle eliminatorias — solo muestra si hay puntos
+    var elimIds = Object.keys(d.matchPts || {}).filter(function(id) {
+      return !id.startsWith('COL-') && d.matchPts[id] > 0;
+    });
+    var elimHtml = '';
+    if (elimIds.length > 0) {
+      elimHtml = '<div class="seccion-titulo">Eliminatorias</div><div class="partidos-lista">';
+      elimIds.forEach(function(id) {
+        var pts = d.matchPts[id];
+        elimHtml += '<div class="partido-fila con-pts">' +
+          '<span>' + id + '</span>' +
+          '<span class="p-pts">' + pts + ' pts</span>' +
+          '</div>';
+      });
+      elimHtml += '</div>';
+    } else {
+      elimHtml = '<div class="seccion-titulo">Eliminatorias</div>' +
+        '<div class="partidos-lista"><div class="partido-fila sin-pts">' +
+        '<span>Sin puntos en eliminatorias aún</span><span class="p-pts">—</span></div></div>';
+    }
+
+    document.getElementById('modalBody').innerHTML =
+      '<div class="total-badge">' +
+        '<div class="pts">' + d.total + '</div>' +
+        '<div class="lbl">puntos totales</div>' +
+      '</div>' +
+      rondasHtml + gruposHtml + elimHtml;
+  }
+
+  function cerrarModal(e) {
+    if (e && e.target !== document.getElementById('modalOverlay')) return;
+    document.getElementById('modalOverlay').classList.remove('activo');
   }
 
   function esc(s) {
@@ -164,6 +396,11 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  // Escapa para uso dentro de atributos JS en onclick (evita cierre prematuro de string)
+  function escJs(s) {
+    return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
 </script>
 
