@@ -23,6 +23,35 @@
     header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.5px; }
     header p  { font-size: 0.85rem; opacity: 0.75; margin-top: 4px; }
 
+    /* ── Tabs ── */
+    .tab-bar {
+      background: #142e4a;
+      padding: 0 12px;
+    }
+    .tab-bar-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      gap: 4px;
+    }
+    .tab {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 10px 18px 9px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .tab:hover { color: rgba(255,255,255,0.85); }
+    .tab.activo {
+      color: #fff;
+      border-bottom-color: #5aabf0;
+    }
+
     .container { max-width: 720px; margin: 0 auto; padding: 20px 12px 40px; }
 
     .updated {
@@ -39,6 +68,7 @@
       font-size: 0.95rem;
     }
 
+    /* ── Tabla posiciones ── */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -195,10 +225,169 @@
     .modal-cargando { text-align: center; padding: 40px 20px; color: #6b7a8d; }
     .modal-error    { text-align: center; padding: 40px 20px; color: #c0392b; }
 
+    /* ── Acordeón estadísticas ── */
+    .ac-item {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .ac-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      cursor: pointer;
+      gap: 12px;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .ac-header:hover { background: #f5f8fc; }
+
+    .ac-info { flex: 1; min-width: 0; }
+    .ac-titulo {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a2535;
+    }
+    .ac-meta {
+      font-size: 0.75rem;
+      color: #8a9bb0;
+      margin-top: 2px;
+    }
+
+    .ac-tags {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .ac-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .ac-tag-w { background: #d5f5e3; color: #1a6b3a; }
+    .ac-tag-d { background: #fef9e7; color: #8a6200; }
+    .ac-tag-l { background: #fde8e8; color: #8b1a1a; }
+
+    .ac-arrow {
+      font-size: 1.1rem;
+      color: #8a9bb0;
+      flex-shrink: 0;
+      transition: transform 0.25s;
+    }
+    .ac-item.abierto .ac-arrow { transform: rotate(90deg); }
+
+    .ac-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+    }
+    .ac-item.abierto .ac-body { max-height: 900px; }
+
+    .ac-body-inner {
+      padding: 4px 16px 18px;
+      border-top: 1px solid #eef2f6;
+    }
+
+    .ac-seccion {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #8a9bb0;
+      margin: 14px 0 8px;
+    }
+
+    /* Barras W/D/L */
+    .wdl-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 7px;
+      gap: 8px;
+    }
+    .wdl-lbl {
+      width: 72px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .wdl-pct {
+      width: 34px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .wdl-pct-w { color: #1e8449; }
+    .wdl-pct-d { color: #b7770d; }
+    .wdl-pct-l { color: #c0392b; }
+    .wdl-track {
+      flex: 1;
+      height: 20px;
+      background: #f0f4f8;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .wdl-fill { height: 100%; border-radius: 3px; min-width: 3px; }
+    .wdl-fill-w { background: linear-gradient(90deg, #1a7a3f, #27ae60); }
+    .wdl-fill-d { background: linear-gradient(90deg, #c47e00, #f39c12); }
+    .wdl-fill-l { background: linear-gradient(90deg, #a93226, #e74c3c); }
+    .wdl-cnt {
+      width: 60px;
+      text-align: right;
+      font-size: 0.75rem;
+      color: #8a9bb0;
+      flex-shrink: 0;
+    }
+
+    /* Barras marcadores */
+    .sc-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      gap: 8px;
+    }
+    .sc-lbl {
+      width: 38px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      color: #1a2535;
+      flex-shrink: 0;
+    }
+    .sc-row:first-child .sc-lbl { color: #1a4f72; }
+    .sc-track {
+      flex: 1;
+      height: 16px;
+      background: #f0f4f8;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .sc-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1a4f72, #2980b9);
+      border-radius: 3px;
+      min-width: 3px;
+    }
+    .sc-row:first-child .sc-fill { background: linear-gradient(90deg, #0d2137, #1a5276); }
+    .sc-cnt {
+      width: 72px;
+      text-align: right;
+      font-size: 0.75rem;
+      color: #8a9bb0;
+      flex-shrink: 0;
+    }
+    .sc-row:first-child .sc-cnt { font-weight: 700; color: #1a4f72; }
+
     @media (max-width: 480px) {
       .hide-mobile { display: none; }
       header h1 { font-size: 1.2rem; }
       .rondas-grid { grid-template-columns: repeat(3, 1fr); }
+      .ac-tags { display: none; }
     }
   </style>
 </head>
@@ -209,9 +398,27 @@
   <p>Tabla de posiciones en tiempo real</p>
 </header>
 
+<div class="tab-bar">
+  <div class="tab-bar-inner">
+    <button class="tab activo" id="tab-btn-pos" onclick="cambiarTab('posiciones')">Posiciones</button>
+    <button class="tab"        id="tab-btn-est" onclick="cambiarTab('estadisticas')">Estadísticas</button>
+  </div>
+</div>
+
 <div class="container">
-  <div class="updated" id="updated"></div>
-  <div id="contenido"><div class="estado">Cargando...</div></div>
+
+  <!-- Tab Posiciones -->
+  <div id="tab-posiciones">
+    <div class="updated" id="updated"></div>
+    <div id="contenido"><div class="estado">Cargando...</div></div>
+  </div>
+
+  <!-- Tab Estadísticas -->
+  <div id="tab-estadisticas" style="display:none">
+    <div class="updated" id="stats-updated"></div>
+    <div id="stats-contenido"><div class="estado">Cargando estadísticas...</div></div>
+  </div>
+
 </div>
 
 <!-- Modal detalle individual -->
@@ -243,6 +450,9 @@
     { key: 'ptsBonos',  label: 'Bonus',     ids: null },
   ];
 
+  var statsYaCargadas = false;
+
+  // ── Carga inicial posiciones ──────────────────────────────
   fetch(API_URL)
     .then(function(r) { return r.json(); })
     .then(function(datos) { renderizar(datos); })
@@ -251,6 +461,119 @@
         '<div class="estado">Error al cargar los datos. Intenta de nuevo.</div>';
     });
 
+  // ── Tabs ─────────────────────────────────────────────────
+  function cambiarTab(tab) {
+    var esPos = tab === 'posiciones';
+    document.getElementById('tab-posiciones').style.display  = esPos ? '' : 'none';
+    document.getElementById('tab-estadisticas').style.display = esPos ? 'none' : '';
+    document.getElementById('tab-btn-pos').classList.toggle('activo', esPos);
+    document.getElementById('tab-btn-est').classList.toggle('activo', !esPos);
+    if (!esPos && !statsYaCargadas) cargarEstadisticas();
+  }
+
+  // ── Estadísticas ─────────────────────────────────────────
+  function cargarEstadisticas() {
+    document.getElementById('stats-contenido').innerHTML =
+      '<div class="estado">Cargando estadísticas...</div>';
+
+    fetch(BASE_URL + '?format=statsjson')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        statsYaCargadas = true;
+        renderizarStats(data);
+      })
+      .catch(function() {
+        document.getElementById('stats-contenido').innerHTML =
+          '<div class="estado">Error al cargar estadísticas. Intenta de nuevo.</div>';
+      });
+  }
+
+  function renderizarStats(data) {
+    var matches = data.matches || [];
+    if (matches.length === 0) {
+      document.getElementById('stats-contenido').innerHTML =
+        '<div class="estado">Sin estadísticas disponibles aún.<br>' +
+        '<small>El administrador debe ejecutar "Estadísticas → Fase 1" desde la hoja maestra.</small></div>';
+      return;
+    }
+
+    var ts = matches[matches.length - 1].timestamp || '';
+    if (ts) document.getElementById('stats-updated').textContent = 'Actualizado: ' + ts;
+
+    var html = '';
+    matches.forEach(function(m) {
+      var tot = m.total || 1;
+      var wPct = (m.W / tot * 100).toFixed(0);
+      var dPct = (m.D / tot * 100).toFixed(0);
+      var lPct = (m.L / tot * 100).toFixed(0);
+
+      html += '<div class="ac-item" id="ac-' + esc(m.id) + '">' +
+        '<div class="ac-header" onclick="toggleAc(' + "'" + escJs(m.id) + "'" + ')">' +
+          '<div class="ac-info">' +
+            '<div class="ac-titulo">' + esc(m.local) + ' vs ' + esc(m.visit) + '</div>' +
+            '<div class="ac-meta">' + esc(m.label) + ' &nbsp;·&nbsp; ' + m.total + '/' + m.totalPartic + ' predicciones</div>' +
+          '</div>' +
+          '<div class="ac-tags">' +
+            '<span class="ac-tag ac-tag-w">V ' + wPct + '%</span>' +
+            '<span class="ac-tag ac-tag-d">E ' + dPct + '%</span>' +
+            '<span class="ac-tag ac-tag-l">D ' + lPct + '%</span>' +
+          '</div>' +
+          '<span class="ac-arrow">&#8250;</span>' +
+        '</div>' +
+        '<div class="ac-body">' +
+          '<div class="ac-body-inner">' + renderStatsBody(m) + '</div>' +
+        '</div>' +
+        '</div>';
+    });
+
+    document.getElementById('stats-contenido').innerHTML = html;
+  }
+
+  function renderStatsBody(m) {
+    var tot  = m.total > 0 ? m.total : 1;
+    var maxC = m.maxCount > 0 ? m.maxCount : 1;
+    var html = '';
+
+    // W/D/L
+    html += '<div class="ac-seccion">Resultado Colombia</div>';
+    var wdlRows = [
+      { lbl: 'Victoria', cnt: m.W, pctCls: 'wdl-pct-w', fillCls: 'wdl-fill-w' },
+      { lbl: 'Empate',   cnt: m.D, pctCls: 'wdl-pct-d', fillCls: 'wdl-fill-d' },
+      { lbl: 'Derrota',  cnt: m.L, pctCls: 'wdl-pct-l', fillCls: 'wdl-fill-l' },
+    ];
+    wdlRows.forEach(function(r) {
+      var pct = (r.cnt / tot * 100).toFixed(1);
+      html += '<div class="wdl-row">' +
+        '<div class="wdl-lbl">' + r.lbl + '</div>' +
+        '<div class="wdl-pct ' + r.pctCls + '">' + (r.cnt / tot * 100).toFixed(0) + '%</div>' +
+        '<div class="wdl-track"><div class="wdl-fill ' + r.fillCls + '" style="width:' + pct + '%"></div></div>' +
+        '<div class="wdl-cnt">' + r.cnt + ' pollas</div>' +
+        '</div>';
+    });
+
+    // Marcadores
+    if (m.sortedScores && m.sortedScores.length > 0) {
+      html += '<div class="ac-seccion">Marcadores más apostados (' + esc(m.local) + ' — ' + esc(m.visit) + ')</div>';
+      m.sortedScores.forEach(function(sc, i) {
+        var w = (sc[1] / maxC * 100).toFixed(1);
+        var pct = (sc[1] / tot * 100).toFixed(1);
+        html += '<div class="sc-row">' +
+          '<div class="sc-lbl">' + esc(sc[0]) + '</div>' +
+          '<div class="sc-track"><div class="sc-fill" style="width:' + w + '%"></div></div>' +
+          '<div class="sc-cnt">' + sc[1] + ' &nbsp;·&nbsp; ' + pct + '%</div>' +
+          '</div>';
+      });
+    }
+
+    return html;
+  }
+
+  function toggleAc(id) {
+    var item = document.getElementById('ac-' + id);
+    if (item) item.classList.toggle('abierto');
+  }
+
+  // ── Posiciones ───────────────────────────────────────────
   function renderizar(datos) {
     document.getElementById('updated').textContent = 'Actualizado: ' + datos.actualizado;
 
@@ -305,8 +628,7 @@
     document.getElementById('contenido').innerHTML = html;
   }
 
-  // ── Modal ──────────────────────────────────────────────
-
+  // ── Modal ─────────────────────────────────────────────────
   function verDetalle(alias) {
     document.getElementById('modalNombre').textContent = alias;
     document.getElementById('modalSub').textContent    = '';
@@ -332,7 +654,6 @@
     document.getElementById('modalNombre').textContent = d.nombre;
     document.getElementById('modalSub').textContent    = d.alias + '  ·  Posición #' + d.posicion;
 
-    // Grilla de rondas
     var rondasHtml = '<div class="rondas-grid">';
     RONDA_ORDEN.forEach(function(r) {
       var pts = d[r.key] || 0;
@@ -344,7 +665,6 @@
     });
     rondasHtml += '</div>';
 
-    // Detalle Colombia — grupos (siempre visible)
     var gruposHtml = '<div class="seccion-titulo">Colombia — Grupos</div><div class="partidos-lista">';
     ['COL-G01','COL-G02','COL-G03'].forEach(function(id) {
       var pts = (d.matchPts && d.matchPts[id]) || 0;
@@ -356,7 +676,6 @@
     });
     gruposHtml += '</div>';
 
-    // Detalle eliminatorias — solo muestra si hay puntos
     var elimIds = Object.keys(d.matchPts || {}).filter(function(id) {
       return !id.startsWith('COL-') && d.matchPts[id] > 0;
     });
@@ -398,7 +717,6 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Escapa para uso dentro de atributos JS en onclick (evita cierre prematuro de string)
   function escJs(s) {
     return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
