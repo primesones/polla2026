@@ -622,7 +622,7 @@
       var meses  = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
       return dias[b.getUTCDay()] + ' ' + b.getUTCDate() + ' ' + meses[b.getUTCMonth()] +
              ' · ' + String(b.getUTCHours()).padStart(2,'0') + ':' +
-             String(b.getUTCMinutes()).padStart(2,'0') + ' Bogotá';
+             String(b.getUTCMinutes()).padStart(2,'0');
     } catch(e) { return ''; }
   }
 
@@ -658,13 +658,13 @@
     if (ts) document.getElementById('stats-updated').textContent = 'Actualizado: ' + ts;
 
     var SECCION_LABELS = {
-      'COL-G': 'Colombia — Fase de Grupos',
-      'R32-':  'Dieciseisavos de Final',
-      'R16-':  'Octavos de Final',
-      'QF-':   'Cuartos de Final',
-      'SF-':   'Semifinales',
-      '3RD-':  'Tercer Puesto',
       'FINAL': 'Final',
+      '3RD-':  'Tercer Puesto',
+      'SF-':   'Semifinales',
+      'QF-':   'Cuartos de Final',
+      'R16-':  'Octavos de Final',
+      'R32-':  'Dieciseisavos de Final',
+      'COL-G': 'Colombia — Fase de Grupos',
     };
     var lastPfx = null;
     var html = '';
