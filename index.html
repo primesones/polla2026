@@ -361,6 +361,15 @@
       color: #8a9bb0;
       margin: 14px 0 8px;
     }
+    .stats-seccion-hdr {
+      font-weight: 700;
+      font-size: 13px;
+      color: #1a3a5c;
+      padding: 16px 0 6px;
+      border-bottom: 2px solid #1a3a5c;
+      margin-bottom: 4px;
+      letter-spacing: 0.3px;
+    }
 
     /* Barras W/D/L */
     .wdl-row {
@@ -625,8 +634,23 @@
     var ts = matches[matches.length - 1].timestamp || '';
     if (ts) document.getElementById('stats-updated').textContent = 'Actualizado: ' + ts;
 
+    var SECCION_LABELS = {
+      'COL-G': 'Colombia — Fase de Grupos',
+      'R32-':  'Dieciseisavos de Final',
+      'R16-':  'Octavos de Final',
+      'QF-':   'Cuartos de Final',
+      'SF-':   'Semifinales',
+      '3RD-':  'Tercer Puesto',
+      'FINAL': 'Final',
+    };
+    var lastPfx = null;
     var html = '';
     matches.forEach(function(m) {
+      var pfx = Object.keys(SECCION_LABELS).find(function(p) { return m.id.startsWith(p); });
+      if (pfx && pfx !== lastPfx) {
+        html += '<div class="stats-seccion-hdr">' + SECCION_LABELS[pfx] + '</div>';
+        lastPfx = pfx;
+      }
       var tot = m.total || 1;
       var wPct = (m.W / tot * 100).toFixed(0);
       var dPct = (m.D / tot * 100).toFixed(0);
@@ -660,11 +684,12 @@
     var html = '';
 
     // W/D/L
-    html += '<div class="ac-seccion">Resultado Colombia</div>';
+    var isColMatch = m.id.startsWith('COL-G');
+    html += '<div class="ac-seccion">' + (isColMatch ? 'Resultado Colombia' : 'Resultado') + '</div>';
     var wdlRows = [
-      { lbl: 'Victoria', cnt: m.W, pctCls: 'wdl-pct-w', fillCls: 'wdl-fill-w' },
-      { lbl: 'Empate',   cnt: m.D, pctCls: 'wdl-pct-d', fillCls: 'wdl-fill-d' },
-      { lbl: 'Derrota',  cnt: m.L, pctCls: 'wdl-pct-l', fillCls: 'wdl-fill-l' },
+      { lbl: isColMatch ? 'Victoria' : 'Gana ' + esc(m.local), cnt: m.W, pctCls: 'wdl-pct-w', fillCls: 'wdl-fill-w' },
+      { lbl: 'Empate',                                           cnt: m.D, pctCls: 'wdl-pct-d', fillCls: 'wdl-fill-d' },
+      { lbl: isColMatch ? 'Derrota'  : 'Gana ' + esc(m.visit),  cnt: m.L, pctCls: 'wdl-pct-l', fillCls: 'wdl-fill-l' },
     ];
     wdlRows.forEach(function(r) {
       var pct = (r.cnt / tot * 100).toFixed(1);
