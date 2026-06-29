@@ -231,6 +231,20 @@
     }
     .partido-fila.con-pts .p-pts { color: #1565c0; }
     .partido-fila.sin-pts .p-pts { color: #aaa; }
+    .partido-fila { align-items: flex-start; }
+    .partido-fila .p-pts { padding-top: 1px; }
+    .partido-fila .p-llave {
+      font-size: 0.72rem;
+      color: #7a869a;
+      margin-top: 4px;
+    }
+    .partido-fila .p-desglose {
+      font-size: 0.70rem;
+      color: #8d99a8;
+      margin-top: 3px;
+    }
+    .chk-ok   { color: #2e7d32; font-weight: 600; }
+    .chk-fail { color: #c62828; font-weight: 600; }
 
     .modal-cargando { text-align: center; padding: 40px 20px; color: #6b7a8d; }
     .modal-error    { text-align: center; padding: 40px 20px; color: #c0392b; }
@@ -654,6 +668,36 @@
       });
   }
 
+  // Devuelve HTML con ✓/✗ para cada componente del puntaje (gol local, gol visitante, resultado).
+  function desgloseScoreHtml(pred, res, local, visit) {
+    var g1p = Number(pred.gol1), g2p = Number(pred.gol2);
+    var g1r = Number(res.gol1),  g2r = Number(res.gol2);
+    var ok1 = g1p === g1r;
+    var ok2 = g2p === g2r;
+    var okR = Math.sign(g1p - g2p) === Math.sign(g1r - g2r);
+    function badge(ok, txt) {
+      return '<span class="' + (ok ? 'chk-ok' : 'chk-fail') + '">' + (ok ? '✓' : '✗') + '</span> ' + esc(txt);
+    }
+    return badge(ok1, 'Gol ' + local) + ' &nbsp; ' + badge(ok2, 'Gol ' + visit) + ' &nbsp; ' + badge(okR, 'Resultado');
+  }
+
+  // Devuelve HTML de la línea de llave predicha (R16+): equipos con ✓/✗ por equipo.
+  function llaveHtml(predTeams, actTeams) {
+    var pl = (predTeams.local || '').trim();
+    var pv = (predTeams.visit || '').trim();
+    if (!pl && !pv) return '';
+    var actualSet = {};
+    if (actTeams && actTeams.local) actualSet[actTeams.local.toLowerCase()] = true;
+    if (actTeams && actTeams.visit) actualSet[actTeams.visit.toLowerCase()] = true;
+    var lOk = actualSet[pl.toLowerCase()] === true;
+    var vOk = actualSet[pv.toLowerCase()] === true;
+    return '<div class="p-llave">🔮 ' +
+      esc(pl) + ' <span class="' + (lOk ? 'chk-ok' : 'chk-fail') + '">' + (lOk ? '✓' : '✗') + '</span>' +
+      ' &nbsp; ' +
+      esc(pv) + ' <span class="' + (vOk ? 'chk-ok' : 'chk-fail') + '">' + (vOk ? '✓' : '✗') + '</span>' +
+      '</div>';
+  }
+
   function renderizarDetalle(d) {
     if (d.error) {
       document.getElementById('modalBody').innerHTML =
@@ -688,25 +732,57 @@
         '<div class="partidos-lista">';
 
       jugados.forEach(function(id) {
-        var pts  = (d.matchPts && d.matchPts[id]) || 0;
-        var lbl  = (d.matchLabels && d.matchLabels[id]) || id;
-        var res  = d.matchResults[id];
-        var pred = d.matchPreds && d.matchPreds[id];
-        var hasPred = pred && pred.gol1 !== '' && pred.gol1 !== null && pred.gol1 !== undefined
-                           && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
-        var cls  = pts > 0 ? 'partido-fila con-pts' : 'partido-fila sin-pts';
+        var pts      = (d.matchPts && d.matchPts[id]) || 0;
+        var lbl      = (d.matchLabels && d.matchLabels[id]) || id;
+        var res      = d.matchResults[id];
+        var pred     = d.matchPreds && d.matchPreds[id];
+        var actTeams = d.matchTeams && d.matchTeams[id];
+        var predTeams = d.matchPredTeams && d.matchPredTeams[id];
+        var hasPred  = pred && pred.gol1 !== '' && pred.gol1 !== null && pred.gol1 !== undefined
+                            && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
+        var cls      = pts > 0 ? 'partido-fila con-pts' : 'partido-fila sin-pts';
 
-        var predStr = hasPred ? (pred.gol1 + '–' + pred.gol2) : 'sin predicción';
-        var resStr  = res.gol1 + '–' + res.gol2;
+        var predStr  = hasPred ? (pred.gol1 + '–' + pred.gol2) : 'sin predicción';
+        var resStr   = res.gol1 + '–' + res.gol2;
+
+        // Línea de llave (R16+): muestra equipos predichos con ✓/✗
+        var llineaHtml = '';
+        if (predTeams) llineaHtml = llaveHtml(predTeams, actTeams);
+
+        // Desglose del puntaje por componente
+        var desgloseEl = '';
+        if (hasPred && res) {
+          var localName = actTeams ? actTeams.local : (lbl.split(' vs ')[0] || '');
+          var visitName = actTeams ? actTeams.visit : (lbl.split(' vs ')[1] || '');
+          if (predTeams) {
+            // R16+: score pts solo aplican si ambos equipos del bracket son correctos
+            var actualSet = {};
+            if (actTeams && actTeams.local) actualSet[actTeams.local.toLowerCase()] = true;
+            if (actTeams && actTeams.visit) actualSet[actTeams.visit.toLowerCase()] = true;
+            var pl = (predTeams.local || '').trim().toLowerCase();
+            var pv = (predTeams.visit || '').trim().toLowerCase();
+            var ambosOk = pl && pv && actualSet[pl] && actualSet[pv];
+            if (ambosOk) {
+              desgloseEl = '<div class="p-desglose">' + desgloseScoreHtml(pred, res, localName, visitName) + '</div>';
+            } else {
+              desgloseEl = '<div class="p-desglose"><span class="chk-fail">✗</span> equipos incorrectos en llave</div>';
+            }
+          } else {
+            // Grupos o R32: siempre mostrar desglose
+            desgloseEl = '<div class="p-desglose">' + desgloseScoreHtml(pred, res, localName, visitName) + '</div>';
+          }
+        }
 
         partidosHtml += '<div class="' + cls + '">' +
           '<div class="p-info">' +
             '<div class="p-equipos">' + esc(lbl) + '</div>' +
+            llineaHtml +
             '<div class="p-scores">' +
               '<span class="p-pred">🎯 ' + predStr + '</span>' +
               '<span class="p-sep">·</span>' +
               '<span class="p-real">Res ' + resStr + '</span>' +
             '</div>' +
+            desgloseEl +
           '</div>' +
           '<span class="p-pts">' + pts + ' pts</span>' +
           '</div>';
