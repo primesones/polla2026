@@ -676,12 +676,12 @@
     });
     rondasHtml += '</div>';
 
-    // Partidos jugados, agrupados por ronda
+    // Partidos jugados, agrupados por ronda — más recientes primero
     var partidosHtml = '';
-    RONDA_ORDEN.forEach(function(ronda) {
+    RONDA_ORDEN.slice().reverse().forEach(function(ronda) {
       var jugados = ronda.ids.filter(function(id) {
         return d.matchResults && d.matchResults[id] !== undefined;
-      });
+      }).reverse();
       if (jugados.length === 0) return;
 
       partidosHtml += '<div class="seccion-titulo">' + ronda.label + '</div>' +
