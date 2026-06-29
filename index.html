@@ -370,6 +370,16 @@
       margin-bottom: 4px;
       letter-spacing: 0.3px;
     }
+    .ac-titulo-match {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .ac-flag-hdr { width: 22px; height: 16px; object-fit: cover; border-radius: 2px; flex-shrink: 0; }
+    .ac-equipo-nm { font-size: 0.88rem; font-weight: 600; color: #1a2a3a; }
+    .ac-marcador-real { font-weight: 800; font-size: 1rem; color: #1a3a5c; padding: 0 4px; }
+    .ac-vs-sep { color: #8a9bb0; font-size: 0.82rem; padding: 0 2px; }
 
     /* Barras W/D/L */
     .wdl-row {
@@ -603,6 +613,19 @@
   }
 
   // ── Estadísticas ─────────────────────────────────────────
+  function fechaBogota(utcStr) {
+    try {
+      var d = new Date(utcStr);
+      if (isNaN(d)) return utcStr;
+      var b = new Date(d.getTime() - 5 * 3600000); // UTC-5 Bogotá
+      var dias   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+      var meses  = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      return dias[b.getUTCDay()] + ' ' + b.getUTCDate() + ' ' + meses[b.getUTCMonth()] +
+             ' · ' + String(b.getUTCHours()).padStart(2,'0') + ':' +
+             String(b.getUTCMinutes()).padStart(2,'0') + ' Bogotá';
+    } catch(e) { return ''; }
+  }
+
   function cargarEstadisticas() {
     document.getElementById('stats-contenido').innerHTML =
       '<div class="estado">Cargando estadísticas...</div>';
@@ -656,11 +679,31 @@
       var dPct = (m.D / tot * 100).toFixed(0);
       var lPct = (m.L / tot * 100).toFixed(0);
 
+      // Header del acordeón: con banderas y marcador real si está disponible
+      var tituloHtml, metaHtml;
+      if (m.flagLocal) {
+        var centro = m.jugado
+          ? '<span class="ac-marcador-real">' + m.golesLocal + ' – ' + m.golesVisit + '</span>'
+          : '<span class="ac-vs-sep">vs</span>';
+        tituloHtml = '<div class="ac-titulo-match">' +
+          '<span class="ac-equipo-nm">' + esc(m.local) + '</span>' +
+          '<img class="ac-flag-hdr" src="' + esc(m.flagLocal) + '" alt="">' +
+          centro +
+          '<img class="ac-flag-hdr" src="' + esc(m.flagVisit) + '" alt="">' +
+          '<span class="ac-equipo-nm">' + esc(m.visit) + '</span>' +
+          '</div>';
+        var fechaStr = m.fechaUtc ? fechaBogota(m.fechaUtc) : '';
+        metaHtml = (fechaStr || esc(m.label)) + ' &nbsp;·&nbsp; ' + m.total + '/' + m.totalPartic + ' predicciones';
+      } else {
+        tituloHtml = '<div class="ac-titulo">' + esc(m.local) + ' vs ' + esc(m.visit) + '</div>';
+        metaHtml   = esc(m.label) + ' &nbsp;·&nbsp; ' + m.total + '/' + m.totalPartic + ' predicciones';
+      }
+
       html += '<div class="ac-item" id="ac-' + esc(m.id) + '">' +
         '<div class="ac-header" onclick="toggleAc(' + "'" + escJs(m.id) + "'" + ')">' +
           '<div class="ac-info">' +
-            '<div class="ac-titulo">' + esc(m.local) + ' vs ' + esc(m.visit) + '</div>' +
-            '<div class="ac-meta">' + esc(m.label) + ' &nbsp;·&nbsp; ' + m.total + '/' + m.totalPartic + ' predicciones</div>' +
+            tituloHtml +
+            '<div class="ac-meta">' + metaHtml + '</div>' +
           '</div>' +
           '<div class="ac-tags">' +
             '<span class="ac-tag ac-tag-w">V ' + wPct + '%</span>' +
