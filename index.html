@@ -449,6 +449,67 @@
       .rondas-grid { grid-template-columns: repeat(3, 1fr); }
       .ac-tags { display: none; }
     }
+
+    /* ── Stats Fase 2 ── */
+    .f2-divider {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #fff;
+      background: linear-gradient(135deg, #1a3c5e, #2d6a9f);
+      padding: 8px 14px; border-radius: 8px; margin: 28px 0 16px;
+    }
+    .f2-sub {
+      font-size: 0.70rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #6b7a8d;
+      margin: 20px 0 10px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0;
+    }
+    .bono-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+    @media (max-width: 520px) { .bono-grid { grid-template-columns: 1fr; } }
+    .bono-card {
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .bono-card-head {
+      font-size: 0.71rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 5px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .bono-card-head.gold   { color: #b8860b; border-color: #f0d060; }
+    .bono-card-head.silver { color: #536571; border-color: #b0bec5; }
+    .bono-card-head.bronze { color: #7d4e2a; border-color: #c49a6c; }
+    .bono-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+    .bono-equipo { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.78rem; color: #1a2535; }
+    .bono-track  { width: 44px; height: 7px; background: #e8edf2; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+    .bono-fill   { height: 100%; border-radius: 4px; }
+    .bono-fill.gold   { background: #c9a227; }
+    .bono-fill.silver { background: #6b7a8d; }
+    .bono-fill.bronze { background: #8b5c2a; }
+    .bono-cnt    { font-size: 0.70rem; color: #8a9bb0; min-width: 16px; text-align: right; flex-shrink: 0; }
+
+    .llave-match {
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 10px 12px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .llave-match-titulo { font-size: 0.82rem; font-weight: 600; color: #1a3c5e; margin-bottom: 7px; }
+    .llave-bar-cont { display: flex; height: 22px; border-radius: 4px; overflow: hidden; gap: 1px; }
+    .llave-seg {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: #fff; overflow: hidden; white-space: nowrap;
+    }
+    .llave-seg.ambos   { background: #2e7d32; }
+    .llave-seg.uno     { background: #f9a825; }
+    .llave-seg.ninguno { background: #c62828; }
+    .llave-seg.sinData { background: #d5dce4; color: #6b7a8d; }
+    .llave-leyenda { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; font-size: 0.68rem; color: #6b7a8d; }
+    .llave-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 3px; vertical-align: middle; }
+
+    .ronda-section { margin-bottom: 16px; }
+    .ronda-section-titulo { font-size: 0.72rem; font-weight: 700; color: #2d6a9f; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .equipo-row { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+    .equipo-pos    { width: 16px; color: #aab4c0; font-size: 0.68rem; text-align: right; flex-shrink: 0; }
+    .equipo-nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.80rem; color: #1a2535; }
+    .equipo-track  { width: 80px; height: 8px; background: #e8edf2; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+    .equipo-fill   { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #1a3c5e, #2d6a9f); }
+    .equipo-cnt    { font-size: 0.72rem; color: #8a9bb0; min-width: 28px; text-align: right; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -477,6 +538,7 @@
   <div id="tab-estadisticas" style="display:none">
     <div class="updated" id="stats-updated"></div>
     <div id="stats-contenido"><div class="estado">Cargando estadísticas...</div></div>
+    <div id="stats-f2-contenido"></div>
   </div>
 
 </div>
@@ -535,17 +597,20 @@
   function cargarEstadisticas() {
     document.getElementById('stats-contenido').innerHTML =
       '<div class="estado">Cargando estadísticas...</div>';
+    document.getElementById('stats-f2-contenido').innerHTML = '';
 
     fetch(BASE_URL + '?format=statsjson')
       .then(function(r) { return r.json(); })
-      .then(function(data) {
-        statsYaCargadas = true;
-        renderizarStats(data);
-      })
+      .then(function(data) { statsYaCargadas = true; renderizarStats(data); })
       .catch(function() {
         document.getElementById('stats-contenido').innerHTML =
           '<div class="estado">Error al cargar estadísticas. Intenta de nuevo.</div>';
       });
+
+    fetch(BASE_URL + '?format=statsf2')
+      .then(function(r) { return r.json(); })
+      .then(function(data) { renderizarStatsF2(data); })
+      .catch(function() { /* Fase 2 aún no generada — silencioso */ });
   }
 
   function renderizarStats(data) {
@@ -872,6 +937,110 @@
 
   function escJs(s) {
     return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+
+  // ── Stats Fase 2 ─────────────────────────────────────────────────────────────
+
+  function renderizarStatsF2(data) {
+    var el = document.getElementById('stats-f2-contenido');
+    if (!data || data.error) {
+      el.innerHTML = '';  // sin datos aún — silencioso (se muestra cuando el admin genere caché)
+      return;
+    }
+
+    var html = '<div class="f2-divider">⚽ Fase 2 — Eliminatorias</div>';
+
+    // 1 — Pronósticos de posición final
+    html += '<div class="f2-sub">Pronósticos de posición final · ' + data.totalPlanillas + ' planillas</div>';
+    html += '<div class="bono-grid">';
+    html += _renderBonoCard('🏆 Campeón',    data.campeon    || [], 'gold');
+    html += _renderBonoCard('🥈 Subcampeón', data.subcampeon || [], 'silver');
+    html += _renderBonoCard('🥉 3er puesto', data.tercero    || [], 'bronze');
+    html += '</div>';
+
+    // 2 — Aciertos de llave (solo si hay partidos jugados)
+    var llave = data.aciertosLlave || [];
+    if (llave.length > 0) {
+      html += '<div class="f2-sub">Aciertos de llave — partidos jugados</div>';
+      llave.forEach(function(m) { html += _renderLlaveMatch(m); });
+    }
+
+    // 3 — Equipos más predichos por ronda
+    var rondas = data.equiposPorRonda || {};
+    var RONDAS_DEF = [
+      { key: 'R16',   label: 'Octavos de final' },
+      { key: 'QF',    label: 'Cuartos de final' },
+      { key: 'SF',    label: 'Semifinales' },
+      { key: 'Final', label: 'Final y 3er puesto' },
+    ];
+    var tieneEquipos = RONDAS_DEF.some(function(r) { return (rondas[r.key] || []).length > 0; });
+    if (tieneEquipos) {
+      html += '<div class="f2-sub">Equipos más predichos por ronda</div>';
+      RONDAS_DEF.forEach(function(r) {
+        var equipos = rondas[r.key] || [];
+        if (equipos.length === 0) return;
+        var maxC = equipos[0].count || 1;
+        html += '<div class="ronda-section"><div class="ronda-section-titulo">' + esc(r.label) + '</div>';
+        equipos.slice(0, 12).forEach(function(eq, i) {
+          var pct = (eq.count / maxC * 100).toFixed(0);
+          html += '<div class="equipo-row">' +
+            '<span class="equipo-pos">' + (i + 1) + '</span>' +
+            '<span class="equipo-nombre">' + esc(eq.equipo) + '</span>' +
+            '<div class="equipo-track"><div class="equipo-fill" style="width:' + pct + '%"></div></div>' +
+            '<span class="equipo-cnt">' + eq.count + '</span>' +
+            '</div>';
+        });
+        html += '</div>';
+      });
+    }
+
+    if (data.generado) {
+      html += '<div style="font-size:0.68rem;color:#aab4c0;margin-top:12px;text-align:right">Caché: ' + esc(data.generado) + '</div>';
+    }
+
+    el.innerHTML = html;
+  }
+
+  function _renderBonoCard(titulo, equipos, cls) {
+    var max  = equipos.length > 0 ? (equipos[0].count || 1) : 1;
+    var html = '<div class="bono-card"><div class="bono-card-head ' + cls + '">' + titulo + '</div>';
+    if (equipos.length === 0) {
+      html += '<div style="font-size:0.75rem;color:#aab4c0;padding:4px 0">Sin datos</div>';
+    } else {
+      equipos.slice(0, 10).forEach(function(eq) {
+        var pct = (eq.count / max * 100).toFixed(0);
+        html += '<div class="bono-row">' +
+          '<span class="bono-equipo" title="' + esc(eq.equipo) + '">' + esc(eq.equipo) + '</span>' +
+          '<div class="bono-track"><div class="bono-fill ' + cls + '" style="width:' + pct + '%"></div></div>' +
+          '<span class="bono-cnt">' + eq.count + '</span>' +
+          '</div>';
+      });
+    }
+    return html + '</div>';
+  }
+
+  function _renderLlaveMatch(m) {
+    var tot = m.total || 1;
+    function seg(cls, n) {
+      if (!n) return '';
+      var pct = (n / tot * 100).toFixed(1);
+      return '<div class="llave-seg ' + cls + '" style="flex:' + n + '">' +
+        (parseFloat(pct) >= 10 ? n : '') + '</div>';
+    }
+    var html = '<div class="llave-match">' +
+      '<div class="llave-match-titulo">' + esc(m.label) + '</div>' +
+      '<div class="llave-bar-cont">' +
+        seg('ambos',   m.ambos)   +
+        seg('uno',     m.uno)     +
+        seg('ninguno', m.ninguno) +
+        seg('sinData', m.sinData) +
+      '</div>' +
+      '<div class="llave-leyenda">';
+    if (m.ambos)   html += '<span><span class="llave-dot" style="background:#2e7d32"></span>Ambos ✓: ' + m.ambos + '</span>';
+    if (m.uno)     html += '<span><span class="llave-dot" style="background:#f9a825"></span>Uno ✓: ' + m.uno + '</span>';
+    if (m.ninguno) html += '<span><span class="llave-dot" style="background:#c62828"></span>Ninguno: ' + m.ninguno + '</span>';
+    if (m.sinData) html += '<span><span class="llave-dot" style="background:#d5dce4"></span>S/d: ' + m.sinData + '</span>';
+    return html + '</div></div>';
   }
 </script>
 
