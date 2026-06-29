@@ -207,44 +207,80 @@
     .partido-fila {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 8px 10px;
+      align-items: flex-start;
+      padding: 9px 10px;
       border-radius: 6px;
       margin-bottom: 4px;
-      font-size: 0.88rem;
     }
     .partido-fila.con-pts { background: #e8f4fd; }
     .partido-fila.sin-pts { background: #f8f9fa; }
     .partido-fila .p-info { flex: 1; min-width: 0; }
-    .partido-fila .p-equipos { font-size: 0.85rem; font-weight: 600; color: #1a3c5e; }
-    .partido-fila.sin-pts .p-equipos { color: #888; }
-    .partido-fila .p-scores { font-size: 0.75rem; color: #6b7a8d; margin-top: 3px; }
-    .partido-fila .p-pred  { color: #1565c0; }
-    .partido-fila.sin-pts .p-pred { color: #aaa; }
-    .partido-fila .p-sep   { margin: 0 5px; }
+
+    /* Línea 1: resultado real con banderas */
+    .p-resultado {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a3c5e;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .p-resultado .p-flag {
+      width: 16px;
+      height: 16px;
+      border-radius: 2px;
+      object-fit: cover;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .p-resultado .p-score {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #0d47a1;
+      background: rgba(13,71,161,0.09);
+      padding: 1px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+    .partido-fila.sin-pts .p-resultado { color: #888; }
+    .partido-fila.sin-pts .p-score     { color: #aaa; background: rgba(0,0,0,0.05); }
+
+    /* Línea 2: llave predicha R16+ */
+    .p-llave {
+      font-size: 0.72rem;
+      color: #7a869a;
+      margin-top: 4px;
+    }
+
+    /* Línea 3: predicción del participante */
+    .p-pred-line {
+      font-size: 0.75rem;
+      color: #1565c0;
+      margin-top: 4px;
+    }
+    .partido-fila.sin-pts .p-pred-line { color: #aaa; }
+
+    /* Línea 4: desglose de puntos */
+    .p-desglose {
+      font-size: 0.70rem;
+      color: #8d99a8;
+      margin-top: 3px;
+    }
+
+    .chk-ok   { color: #2e7d32; font-weight: 600; }
+    .chk-fail { color: #c62828; font-weight: 600; }
+
     .partido-fila .p-pts {
       font-weight: 700;
       min-width: 38px;
       text-align: right;
       font-size: 0.9rem;
       margin-left: 8px;
+      padding-top: 1px;
     }
     .partido-fila.con-pts .p-pts { color: #1565c0; }
     .partido-fila.sin-pts .p-pts { color: #aaa; }
-    .partido-fila { align-items: flex-start; }
-    .partido-fila .p-pts { padding-top: 1px; }
-    .partido-fila .p-llave {
-      font-size: 0.72rem;
-      color: #7a869a;
-      margin-top: 4px;
-    }
-    .partido-fila .p-desglose {
-      font-size: 0.70rem;
-      color: #8d99a8;
-      margin-top: 3px;
-    }
-    .chk-ok   { color: #2e7d32; font-weight: 600; }
-    .chk-fail { color: #c62828; font-weight: 600; }
 
     .modal-cargando { text-align: center; padding: 40px 20px; color: #6b7a8d; }
     .modal-error    { text-align: center; padding: 40px 20px; color: #c0392b; }
@@ -732,57 +768,63 @@
         '<div class="partidos-lista">';
 
       jugados.forEach(function(id) {
-        var pts      = (d.matchPts && d.matchPts[id]) || 0;
-        var lbl      = (d.matchLabels && d.matchLabels[id]) || id;
-        var res      = d.matchResults[id];
-        var pred     = d.matchPreds && d.matchPreds[id];
-        var actTeams = d.matchTeams && d.matchTeams[id];
+        var pts       = (d.matchPts && d.matchPts[id]) || 0;
+        var lbl       = (d.matchLabels && d.matchLabels[id]) || id;
+        var res       = d.matchResults[id];
+        var pred      = d.matchPreds && d.matchPreds[id];
+        var actTeams  = d.matchTeams && d.matchTeams[id];
         var predTeams = d.matchPredTeams && d.matchPredTeams[id];
-        var hasPred  = pred && pred.gol1 !== '' && pred.gol1 !== null && pred.gol1 !== undefined
-                            && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
-        var cls      = pts > 0 ? 'partido-fila con-pts' : 'partido-fila sin-pts';
+        var hasPred   = pred && pred.gol1 !== '' && pred.gol1 !== null && pred.gol1 !== undefined
+                             && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
+        var cls       = pts > 0 ? 'partido-fila con-pts' : 'partido-fila sin-pts';
 
-        var predStr  = hasPred ? (pred.gol1 + '–' + pred.gol2) : 'sin predicción';
-        var resStr   = res.gol1 + '–' + res.gol2;
+        var localName = actTeams ? actTeams.local : (lbl.split(' vs ')[0] || '');
+        var visitName = actTeams ? actTeams.visit : (lbl.split(' vs ')[1] || '');
+        var flagL     = actTeams && actTeams.flagLocal  ? '<img class="p-flag" src="' + actTeams.flagLocal  + '" />' : '';
+        var flagV     = actTeams && actTeams.flagVisit  ? '<img class="p-flag" src="' + actTeams.flagVisit  + '" />' : '';
 
-        // Línea de llave (R16+): muestra equipos predichos con ✓/✗
-        var llineaHtml = '';
-        if (predTeams) llineaHtml = llaveHtml(predTeams, actTeams);
+        // Línea 1: resultado real resaltado con banderas
+        var lineaResultado =
+          '<div class="p-resultado">' +
+            '<span>' + esc(localName) + '</span>' + flagL +
+            '<span class="p-score">' + res.gol1 + ' – ' + res.gol2 + '</span>' +
+            flagV + '<span>' + esc(visitName) + '</span>' +
+          '</div>';
 
-        // Desglose del puntaje por componente
-        var desgloseEl = '';
+        // Línea 2 (R16+): llave predicha con ✓/✗
+        var lineaLlave = predTeams ? llaveHtml(predTeams, actTeams) : '';
+
+        // Línea 3: predicción del participante
+        var lineaPred = hasPred
+          ? '<div class="p-pred-line">🎯 Pronóstico: ' + pred.gol1 + ' – ' + pred.gol2 + '</div>'
+          : '<div class="p-pred-line">sin predicción</div>';
+
+        // Línea 4: desglose de puntos
+        var lineaDesglose = '';
         if (hasPred && res) {
-          var localName = actTeams ? actTeams.local : (lbl.split(' vs ')[0] || '');
-          var visitName = actTeams ? actTeams.visit : (lbl.split(' vs ')[1] || '');
           if (predTeams) {
-            // R16+: score pts solo aplican si ambos equipos del bracket son correctos
             var actualSet = {};
             if (actTeams && actTeams.local) actualSet[actTeams.local.toLowerCase()] = true;
             if (actTeams && actTeams.visit) actualSet[actTeams.visit.toLowerCase()] = true;
             var pl = (predTeams.local || '').trim().toLowerCase();
             var pv = (predTeams.visit || '').trim().toLowerCase();
             var ambosOk = pl && pv && actualSet[pl] && actualSet[pv];
-            if (ambosOk) {
-              desgloseEl = '<div class="p-desglose">' + desgloseScoreHtml(pred, res, localName, visitName) + '</div>';
-            } else {
-              desgloseEl = '<div class="p-desglose"><span class="chk-fail">✗</span> equipos incorrectos en llave</div>';
-            }
+            lineaDesglose = '<div class="p-desglose">' +
+              (ambosOk
+                ? desgloseScoreHtml(pred, res, localName, visitName)
+                : '<span class="chk-fail">✗</span> equipos incorrectos en llave') +
+              '</div>';
           } else {
-            // Grupos o R32: siempre mostrar desglose
-            desgloseEl = '<div class="p-desglose">' + desgloseScoreHtml(pred, res, localName, visitName) + '</div>';
+            lineaDesglose = '<div class="p-desglose">' + desgloseScoreHtml(pred, res, localName, visitName) + '</div>';
           }
         }
 
         partidosHtml += '<div class="' + cls + '">' +
           '<div class="p-info">' +
-            '<div class="p-equipos">' + esc(lbl) + '</div>' +
-            llineaHtml +
-            '<div class="p-scores">' +
-              '<span class="p-pred">🎯 ' + predStr + '</span>' +
-              '<span class="p-sep">·</span>' +
-              '<span class="p-real">Res ' + resStr + '</span>' +
-            '</div>' +
-            desgloseEl +
+            lineaResultado +
+            lineaLlave +
+            lineaPred +
+            lineaDesglose +
           '</div>' +
           '<span class="p-pts">' + pts + ' pts</span>' +
           '</div>';
