@@ -208,19 +208,29 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 7px 10px;
+      padding: 8px 10px;
       border-radius: 6px;
       margin-bottom: 4px;
       font-size: 0.88rem;
     }
     .partido-fila.con-pts { background: #e8f4fd; }
-    .partido-fila.sin-pts { background: #f8f9fa; color: #aaa; }
+    .partido-fila.sin-pts { background: #f8f9fa; }
+    .partido-fila .p-info { flex: 1; min-width: 0; }
+    .partido-fila .p-equipos { font-size: 0.85rem; font-weight: 600; color: #1a3c5e; }
+    .partido-fila.sin-pts .p-equipos { color: #888; }
+    .partido-fila .p-scores { font-size: 0.75rem; color: #6b7a8d; margin-top: 3px; }
+    .partido-fila .p-pred  { color: #1565c0; }
+    .partido-fila.sin-pts .p-pred { color: #aaa; }
+    .partido-fila .p-sep   { margin: 0 5px; }
     .partido-fila .p-pts {
       font-weight: 700;
-      min-width: 36px;
+      min-width: 38px;
       text-align: right;
+      font-size: 0.9rem;
+      margin-left: 8px;
     }
     .partido-fila.con-pts .p-pts { color: #1565c0; }
+    .partido-fila.sin-pts .p-pts { color: #aaa; }
 
     .modal-cargando { text-align: center; padding: 40px 20px; color: #6b7a8d; }
     .modal-error    { text-align: center; padding: 40px 20px; color: #c0392b; }
@@ -439,16 +449,16 @@
   var BASE_URL = 'https://script.google.com/macros/s/AKfycbwQsVMWYFkFSSlLrNahg1VQVv1dnYc1D3VZq3eY4ZopTBTtp6Qg0Kq-ICVSgkHRKVx8/exec';
   var API_URL  = BASE_URL + '?format=json';
 
-  var GRUPO_LABELS = { 'COL-G01': 'vs Uzbekistán', 'COL-G02': 'vs Congo DR', 'COL-G03': 'vs Portugal' };
-  var RONDA_ORDEN  = [
-    { key: 'ptsGrupos', label: 'Grupos',    ids: ['COL-G01','COL-G02','COL-G03'] },
-    { key: 'ptsR32',    label: 'R32',       ids: null },
-    { key: 'ptsR16',    label: 'Octavos',   ids: null },
-    { key: 'ptsQF',     label: 'Cuartos',   ids: null },
-    { key: 'ptsSF',     label: 'Semis',     ids: null },
-    { key: 'ptsFinal',  label: 'Final',     ids: null },
-    { key: 'ptsBonos',  label: 'Bonus',     ids: null },
+  var RONDA_ORDEN = [
+    { key: 'ptsGrupos', label: 'Colombia — Grupos',    ids: ['COL-G01','COL-G02','COL-G03'] },
+    { key: 'ptsR32',    label: 'Dieciseisavos (R32)',  ids: ['R32-01','R32-02','R32-03','R32-04','R32-05','R32-06','R32-07','R32-08','R32-09','R32-10','R32-11','R32-12','R32-13','R32-14','R32-15','R32-16'] },
+    { key: 'ptsR16',    label: 'Octavos de final',     ids: ['R16-01','R16-02','R16-03','R16-04','R16-05','R16-06','R16-07','R16-08'] },
+    { key: 'ptsQF',     label: 'Cuartos de final',     ids: ['QF-01','QF-02','QF-03','QF-04'] },
+    { key: 'ptsSF',     label: 'Semifinales',           ids: ['SF-01','SF-02'] },
+    { key: 'ptsFinal',  label: 'Final y 3er puesto',   ids: ['3RD-01','FINAL'] },
   ];
+  // Labels para el grid de resumen (sin Bonus)
+  var RONDA_RESUMEN = RONDA_ORDEN.concat([{ key: 'ptsBonos', label: 'Bonus', ids: [] }]);
 
   var statsYaCargadas = false;
 
@@ -654,8 +664,9 @@
     document.getElementById('modalNombre').textContent = d.nombre;
     document.getElementById('modalSub').textContent    = d.alias + '  ·  Posición #' + d.posicion;
 
+    // Resumen por ronda
     var rondasHtml = '<div class="rondas-grid">';
-    RONDA_ORDEN.forEach(function(r) {
+    RONDA_RESUMEN.forEach(function(r) {
       var pts = d[r.key] || 0;
       var cls = pts > 0 ? 'ronda-cell tiene-pts' : 'ronda-cell';
       rondasHtml += '<div class="' + cls + '">' +
@@ -665,35 +676,59 @@
     });
     rondasHtml += '</div>';
 
-    var gruposHtml = '<div class="seccion-titulo">Colombia — Grupos</div><div class="partidos-lista">';
-    ['COL-G01','COL-G02','COL-G03'].forEach(function(id) {
-      var pts = (d.matchPts && d.matchPts[id]) || 0;
-      var cls = pts > 0 ? 'partido-fila con-pts' : 'partido-fila sin-pts';
-      gruposHtml += '<div class="' + cls + '">' +
-        '<span>' + (GRUPO_LABELS[id] || id) + '</span>' +
-        '<span class="p-pts">' + pts + ' pts</span>' +
-        '</div>';
-    });
-    gruposHtml += '</div>';
+    // Partidos jugados, agrupados por ronda
+    var partidosHtml = '';
+    RONDA_ORDEN.forEach(function(ronda) {
+      var jugados = ronda.ids.filter(function(id) {
+        return d.matchResults && d.matchResults[id] !== undefined;
+      });
+      if (jugados.length === 0) return;
 
-    var elimIds = Object.keys(d.matchPts || {}).filter(function(id) {
-      return !id.startsWith('COL-') && d.matchPts[id] > 0;
-    });
-    var elimHtml = '';
-    if (elimIds.length > 0) {
-      elimHtml = '<div class="seccion-titulo">Eliminatorias</div><div class="partidos-lista">';
-      elimIds.forEach(function(id) {
-        var pts = d.matchPts[id];
-        elimHtml += '<div class="partido-fila con-pts">' +
-          '<span>' + id + '</span>' +
+      partidosHtml += '<div class="seccion-titulo">' + ronda.label + '</div>' +
+        '<div class="partidos-lista">';
+
+      jugados.forEach(function(id) {
+        var pts  = (d.matchPts && d.matchPts[id]) || 0;
+        var lbl  = (d.matchLabels && d.matchLabels[id]) || id;
+        var res  = d.matchResults[id];
+        var pred = d.matchPreds && d.matchPreds[id];
+        var hasPred = pred && pred.gol1 !== '' && pred.gol1 !== null && pred.gol1 !== undefined
+                           && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
+        var cls  = pts > 0 ? 'partido-fila con-pts' : 'partido-fila sin-pts';
+
+        var predStr = hasPred ? (pred.gol1 + '–' + pred.gol2) : 'sin predicción';
+        var resStr  = res.gol1 + '–' + res.gol2;
+
+        partidosHtml += '<div class="' + cls + '">' +
+          '<div class="p-info">' +
+            '<div class="p-equipos">' + esc(lbl) + '</div>' +
+            '<div class="p-scores">' +
+              '<span class="p-pred">🎯 ' + predStr + '</span>' +
+              '<span class="p-sep">·</span>' +
+              '<span class="p-real">Res ' + resStr + '</span>' +
+            '</div>' +
+          '</div>' +
           '<span class="p-pts">' + pts + ' pts</span>' +
           '</div>';
       });
-      elimHtml += '</div>';
-    } else {
-      elimHtml = '<div class="seccion-titulo">Eliminatorias</div>' +
-        '<div class="partidos-lista"><div class="partido-fila sin-pts">' +
-        '<span>Sin puntos en eliminatorias aún</span><span class="p-pts">—</span></div></div>';
+
+      partidosHtml += '</div>';
+    });
+
+    // Bonus de posición (si aplica)
+    var bonusHtml = '';
+    if (d.ptsBonos > 0) {
+      bonusHtml = '<div class="seccion-titulo">Bonus posición final</div>' +
+        '<div class="partidos-lista"><div class="partido-fila con-pts">' +
+        '<div class="p-info"><div class="p-equipos">Campeón / Subcampeón / 3er puesto</div></div>' +
+        '<span class="p-pts">' + d.ptsBonos + ' pts</span>' +
+        '</div></div>';
+    }
+
+    if (!partidosHtml && !bonusHtml) {
+      partidosHtml = '<div class="partidos-lista"><div class="partido-fila sin-pts">' +
+        '<div class="p-info"><div class="p-equipos">Sin partidos jugados aún</div></div>' +
+        '<span class="p-pts">—</span></div></div>';
     }
 
     document.getElementById('modalBody').innerHTML =
@@ -701,7 +736,7 @@
         '<div class="pts">' + d.total + '</div>' +
         '<div class="lbl">puntos totales</div>' +
       '</div>' +
-      rondasHtml + gruposHtml + elimHtml;
+      rondasHtml + partidosHtml + bonusHtml;
   }
 
   function cerrarModal(e) {
