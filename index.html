@@ -814,7 +814,7 @@
       html += '<tr class="' + rc + '">' +
         '<td><span class="pos ' + mc + '">' + icon + '</span></td>' +
         '<td>' +
-          '<span class="nombre-link" onclick="verDetalle(' + "'" + escJs(f.alias) + "'" + ')">' +
+          '<span class="nombre-link" onclick="verDetalle(' + "'" + escJs(f.alias) + "'" + ', ' + "'" + escJs(f.url || '') + "'" + ')">' +
             esc(f.nombre) +
           '</span>' +
           '<br><span class="alias-tag">' + esc(f.alias) + '</span>' +
@@ -835,13 +835,15 @@
   }
 
   // ── Modal ─────────────────────────────────────────────────
-  function verDetalle(alias) {
+  function verDetalle(alias, url) {
     document.getElementById('modalNombre').textContent = alias;
     document.getElementById('modalSub').textContent    = '';
     document.getElementById('modalBody').innerHTML     = '<div class="modal-cargando">Cargando detalle...</div>';
     document.getElementById('modalOverlay').classList.add('activo');
 
-    fetch(BASE_URL + '?format=detail&alias=' + encodeURIComponent(alias))
+    var qs = '?format=detail&alias=' + encodeURIComponent(alias) +
+      (url ? '&url=' + encodeURIComponent(url) : '');
+    fetch(BASE_URL + qs)
       .then(function(r) { return r.json(); })
       .then(function(d) { renderizarDetalle(d); })
       .catch(function() {
