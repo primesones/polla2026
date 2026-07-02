@@ -976,8 +976,8 @@
     rondasHtml += '</div>';
 
     var toggleHtml = '<div class="llave-toggle">' +
-      '<button class="' + (vistaModalActual === 'lista' ? 'activo' : '') + '" onclick="cambiarVistaModal(\'lista\')">Lista por ronda</button>' +
-      '<button class="' + (vistaModalActual === 'llave' ? 'activo' : '') + '" onclick="cambiarVistaModal(\'llave\')">Llave oficial</button>' +
+      '<button class="' + (vistaModalActual === 'lista' ? 'activo' : '') + '" onclick="cambiarVistaModal(\'lista\')">Lista</button>' +
+      '<button class="' + (vistaModalActual === 'llave' ? 'activo' : '') + '" onclick="cambiarVistaModal(\'llave\')">Llaves</button>' +
       '</div>';
 
     document.getElementById('modalBody').innerHTML =
@@ -1062,7 +1062,7 @@
                          && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
       if (hasPred) {
         var ptsClass = pts > 0 ? '' : 'zero';
-        bloquePred = '<div class="llave-pred"><span>🎯 ' + pred.gol1 + '–' + pred.gol2 + '</span>' +
+        bloquePred = '<div class="llave-pred"><span>🎯 Pronóstico: ' + pred.gol1 + '-' + pred.gol2 + '</span>' +
           '<span class="pts ' + ptsClass + '">' + pts + ' pts</span></div>';
       } else {
         bloquePred = '<div class="llave-pred"><span class="nopred">sin predicción cargada</span></div>';
