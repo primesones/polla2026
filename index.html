@@ -293,6 +293,47 @@
     .modal-cargando { text-align: center; padding: 40px 20px; color: #6b7a8d; }
     .modal-error    { text-align: center; padding: 40px 20px; color: #c0392b; }
 
+    /* ── Toggle Lista / Llave oficial dentro del modal ── */
+    .llave-toggle { display: flex; gap: 6px; margin-bottom: 18px; }
+    .llave-toggle button {
+      flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #d3dae4;
+      background: #fff; color: #6b7a8d; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    }
+    .llave-toggle button.activo { background: #1a3c5e; color: #fff; border-color: #1a3c5e; }
+
+    /* ── Vista llave: navegación por ronda ── */
+    .llave-pager-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .llave-pager-nav button {
+      border: 1px solid #d3dae4; background: #fff; color: #1565c0; font-weight: 700;
+      font-size: 1rem; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+    }
+    .llave-pager-nav button:disabled { opacity: 0.3; cursor: default; }
+    .llave-pager-nav .round-name { font-size: 0.82rem; font-weight: 700; color: #1a3c5e; text-align: center; }
+    .llave-pager-dots { display: flex; gap: 4px; justify-content: center; margin-top: 5px; }
+    .llave-pager-dots span { width: 5px; height: 5px; border-radius: 50%; background: #d3dae4; display: inline-block; }
+    .llave-pager-dots span.activo { background: #1565c0; }
+
+    .llave-match { background: #f8f9fa; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; font-size: 0.75rem; }
+    .llave-match.tbd { opacity: 0.55; }
+    .llave-match .meta { display: flex; justify-content: space-between; align-items:center; font-size: 0.65rem; color: #8d99a8; margin-bottom: 4px; }
+    .llave-match .et-tag { font-weight: 700; color: #b26a00; background: rgba(255,152,0,0.14); padding: 1px 5px; border-radius: 3px; }
+    .llave-team { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+    .llave-team img { width: 15px; height: 15px; border-radius: 2px; object-fit: cover; flex-shrink: 0; }
+    .llave-team .code { flex: 1; font-weight: 600; color: #1a3c5e; }
+    .llave-team.winner .code { color: #0d47a1; }
+    .llave-team.tbd-name .code { color: #b5bfcc; font-style: italic; font-weight: 500; }
+    .llave-team .score {
+      font-weight: 800; color: #0d47a1; background: rgba(13,71,161,0.09);
+      padding: 0 7px; border-radius: 4px; min-width: 18px; text-align: center;
+    }
+    .llave-pred {
+      margin-top: 6px; padding-top: 5px; border-top: 1px dashed #e3e8ef; font-size: 0.68rem;
+      color: #c2670f; display: flex; justify-content: space-between; align-items: center; gap: 4px;
+    }
+    .llave-pred .pts { font-weight: 800; color: #fff; background: #2e7d32; border-radius: 3px; padding: 1px 6px; font-size: 0.62rem; }
+    .llave-pred .pts.zero { background: #9aa5b1; }
+    .llave-pred .nopred { color: #b5bfcc; font-style: italic; }
+
     /* ── Acordeón estadísticas ── */
     .ac-item {
       background: #fff;
@@ -890,12 +931,21 @@
       '</div>';
   }
 
+  var vistaModalActual = 'lista'; // 'lista' | 'llave' — se recuerda entre aperturas del modal
+  var llavePagerIndex  = 0;
+  var ultimoDetalle    = null;
+  // Rondas de eliminatorias para la vista de llave (excluye grupos Colombia, que no son bracket)
+  var LLAVE_RONDAS = RONDA_ORDEN.filter(function(r) { return r.key !== 'ptsGrupos'; });
+
   function renderizarDetalle(d) {
     if (d.error) {
       document.getElementById('modalBody').innerHTML =
         '<div class="modal-error">' + esc(d.error) + '</div>';
       return;
     }
+
+    ultimoDetalle   = d;
+    llavePagerIndex = 0;
 
     document.getElementById('modalNombre').textContent = d.nombre;
     document.getElementById('modalSub').textContent    = d.alias + '  ·  Posición #' + d.posicion;
@@ -912,6 +962,102 @@
     });
     rondasHtml += '</div>';
 
+    var toggleHtml = '<div class="llave-toggle">' +
+      '<button class="' + (vistaModalActual === 'lista' ? 'activo' : '') + '" onclick="cambiarVistaModal(\'lista\')">Lista por ronda</button>' +
+      '<button class="' + (vistaModalActual === 'llave' ? 'activo' : '') + '" onclick="cambiarVistaModal(\'llave\')">Llave oficial</button>' +
+      '</div>';
+
+    document.getElementById('modalBody').innerHTML =
+      '<div class="total-badge">' +
+        '<div class="pts">' + d.total + '</div>' +
+        '<div class="lbl">puntos totales</div>' +
+      '</div>' +
+      rondasHtml + toggleHtml + '<div id="modalVistaBody"></div>';
+
+    actualizarCuerpoModal();
+  }
+
+  function cambiarVistaModal(v) {
+    vistaModalActual = v;
+    llavePagerIndex = 0;
+    renderizarDetalle(ultimoDetalle);
+  }
+
+  function actualizarCuerpoModal() {
+    if (!ultimoDetalle) return;
+    document.getElementById('modalVistaBody').innerHTML =
+      vistaModalActual === 'llave' ? renderVistaLlave(ultimoDetalle) : renderizarDetalleListaHtml(ultimoDetalle);
+  }
+
+  // ── Vista "Llave oficial": una ronda de eliminatorias a la vez, con navegación ‹ › ──
+  function matchBoxLlave(id, d) {
+    var teams = d.matchTeams && d.matchTeams[id];
+    var res   = d.matchResults && d.matchResults[id];
+    var pred  = d.matchPreds && d.matchPreds[id];
+    var pts   = (d.matchPts && d.matchPts[id]) || 0;
+    var et    = d.matchExtraTime && d.matchExtraTime[id];
+
+    if (!teams) {
+      return '<div class="llave-match tbd">' +
+        '<div class="meta"><span>' + esc(id) + '</span><span>Por definir</span></div>' +
+        '<div class="llave-team tbd-name"><span class="code">Equipo A</span></div>' +
+        '<div class="llave-team tbd-name"><span class="code">Equipo B</span></div>' +
+        '<div class="llave-pred"><span class="nopred">predicción bloqueada hasta llenar bracket</span></div>' +
+        '</div>';
+    }
+
+    var jugado = !!res;
+    var wl = jugado && Number(res.gol1) > Number(res.gol2);
+    var wv = jugado && Number(res.gol2) > Number(res.gol1);
+
+    var rowLocal = '<div class="llave-team' + (wl ? ' winner' : '') + '">' +
+      (teams.flagLocal ? '<img class="p-flag" src="' + teams.flagLocal + '">' : '') +
+      '<span class="code">' + esc(teams.local) + '</span>' +
+      (jugado ? '<span class="score">' + res.gol1 + '</span>' : '') + '</div>';
+    var rowVisit = '<div class="llave-team' + (wv ? ' winner' : '') + '">' +
+      (teams.flagVisit ? '<img class="p-flag" src="' + teams.flagVisit + '">' : '') +
+      '<span class="code">' + esc(teams.visit) + '</span>' +
+      (jugado ? '<span class="score">' + res.gol2 + '</span>' : '') + '</div>';
+
+    var hasPred = pred && pred.gol1 !== '' && pred.gol1 !== null && pred.gol1 !== undefined
+                       && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
+    var predLine = '<div class="llave-pred"><span class="nopred">sin predicción cargada</span></div>';
+    if (hasPred) {
+      var ptsClass = pts > 0 ? '' : 'zero';
+      predLine = '<div class="llave-pred"><span>🎯 ' + pred.gol1 + '–' + pred.gol2 + '</span>' +
+        '<span class="pts ' + ptsClass + '">' + pts + ' pts</span></div>';
+    }
+
+    return '<div class="llave-match' + (jugado ? '' : ' tbd') + '">' +
+      '<div class="meta"><span>' + (jugado ? 'Finalizado' : 'Por jugar') + '</span>' +
+      (et ? '<span class="et-tag">(90\')</span>' : '') + '</div>' +
+      rowLocal + rowVisit + predLine +
+      '</div>';
+  }
+
+  function renderVistaLlave(d) {
+    var round = LLAVE_RONDAS[llavePagerIndex];
+    var nav = '<div class="llave-pager-nav">' +
+      '<button onclick="cambiarRondaLlave(-1)" ' + (llavePagerIndex === 0 ? 'disabled' : '') + '>‹</button>' +
+      '<div><div class="round-name">' + esc(round.label) + '</div>' +
+      '<div class="llave-pager-dots">' + LLAVE_RONDAS.map(function(r, i) {
+        return '<span class="' + (i === llavePagerIndex ? 'activo' : '') + '"></span>';
+      }).join('') + '</div></div>' +
+      '<button onclick="cambiarRondaLlave(1)" ' + (llavePagerIndex === LLAVE_RONDAS.length - 1 ? 'disabled' : '') + '>›</button>' +
+      '</div>';
+    var list = round.ids.map(function(id) { return matchBoxLlave(id, d); }).join('');
+    return nav + '<div class="llave-pager-list">' + list + '</div>';
+  }
+
+  function cambiarRondaLlave(delta) {
+    var next = llavePagerIndex + delta;
+    if (next < 0 || next >= LLAVE_RONDAS.length) return;
+    llavePagerIndex = next;
+    actualizarCuerpoModal();
+  }
+
+  // ── Vista "Lista por ronda" (la que ya existía) — ahora devuelve el HTML en vez de escribirlo ──
+  function renderizarDetalleListaHtml(d) {
     // Partidos jugados, agrupados por ronda — más recientes primero
     var partidosHtml = '';
     RONDA_ORDEN.slice().reverse().forEach(function(ronda) {
@@ -1007,12 +1153,7 @@
         '<span class="p-pts">—</span></div></div>';
     }
 
-    document.getElementById('modalBody').innerHTML =
-      '<div class="total-badge">' +
-        '<div class="pts">' + d.total + '</div>' +
-        '<div class="lbl">puntos totales</div>' +
-      '</div>' +
-      rondasHtml + partidosHtml + bonusHtml;
+    return partidosHtml + bonusHtml;
   }
 
   function cerrarModal(e) {
