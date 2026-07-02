@@ -245,6 +245,14 @@
     }
     .partido-fila.sin-pts .p-resultado { color: #888; }
     .partido-fila.sin-pts .p-score     { color: #aaa; background: rgba(0,0,0,0.05); }
+    .p-90min {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #b26a00;
+      background: rgba(255,152,0,0.12);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
 
     /* Línea 2: llave predicha R16+ */
     .p-llave {
@@ -930,13 +938,15 @@
         var visitName = actTeams ? actTeams.visit : (lbl.split(' vs ')[1] || '');
         var flagL     = actTeams && actTeams.flagLocal  ? '<img class="p-flag" src="' + actTeams.flagLocal  + '" />' : '';
         var flagV     = actTeams && actTeams.flagVisit  ? '<img class="p-flag" src="' + actTeams.flagVisit  + '" />' : '';
+        var wentToET  = d.matchExtraTime && d.matchExtraTime[id];
+        var etTag     = wentToET ? ' <span class="p-90min">(90\')</span>' : '';
 
         // Línea 1: resultado real resaltado con banderas
         var lineaResultado =
           '<div class="p-resultado">' +
             '<span>' + esc(localName) + '</span>' + flagL +
             '<span class="p-score">' + res.gol1 + ' – ' + res.gol2 + '</span>' +
-            flagV + '<span>' + esc(visitName) + '</span>' +
+            flagV + '<span>' + esc(visitName) + '</span>' + etTag +
           '</div>';
 
         // Línea 2 (R16+): llave predicha con ✓/✗
