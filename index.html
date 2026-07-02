@@ -334,6 +334,19 @@
     .llave-pred .pts.zero { background: #9aa5b1; }
     .llave-pred .nopred { color: #b5bfcc; font-style: italic; }
 
+    /* Bloque "Tu llave predicha" (R16+): equipos predichos + marcador + puntos por equipos */
+    .llave-pred-header {
+      margin-top: 6px; padding-top: 5px; border-top: 1px dashed #e3e8ef; font-size: 0.68rem;
+      color: #c2670f; display: flex; justify-content: space-between; align-items: center; font-weight: 700;
+    }
+    .llave-pred-header .pts { font-weight: 800; color: #fff; background: #2e7d32; border-radius: 3px; padding: 1px 6px; font-size: 0.62rem; }
+    .llave-pred-header .pts.zero { background: #9aa5b1; }
+    .llave-team.pred .code { color: #c2670f; }
+    .llave-team.pred .score { color: #c2670f; background: rgba(194,103,15,0.09); }
+    .llave-team .chk { margin-left: 4px; font-size: 0.7rem; }
+    .llave-equipos-nota { font-size: 0.65rem; color: #6b7a8d; margin-top: 3px; }
+    .llave-equipos-nota b { color: #1565c0; }
+
     /* ── Acordeón estadísticas ── */
     .ac-item {
       background: #fff;
@@ -990,19 +1003,78 @@
   }
 
   // ── Vista "Llave oficial": una ronda de eliminatorias a la vez, con navegación ‹ › ──
+  // Devuelve HTML con ✓/✗ por equipo + puntos por acierto de equipos en llave (0/1/2),
+  // usando la misma regla que _calcularBracketBonusPerMatch en scoring.gs: pertenencia al
+  // conjunto {local, visit} reales, sin importar la posición local/visitante predicha.
+  function bloqueLlavePredicha(predTeams, teams, pred, pts) {
+    var hasPred = pred && pred.gol1 !== '' && pred.gol1 !== null && pred.gol1 !== undefined
+                       && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
+    var lOk = null, vOk = null, bonusEquipos = null;
+    if (teams) {
+      var actualSet = {};
+      if (teams.local) actualSet[teams.local.toLowerCase()] = true;
+      if (teams.visit) actualSet[teams.visit.toLowerCase()] = true;
+      lOk = !!(predTeams.local && actualSet[predTeams.local.toLowerCase()]);
+      vOk = !!(predTeams.visit && actualSet[predTeams.visit.toLowerCase()]);
+      bonusEquipos = (lOk ? 1 : 0) + (vOk ? 1 : 0);
+    }
+    function chk(ok) {
+      if (ok === null) return '';
+      return '<span class="chk ' + (ok ? 'chk-ok' : 'chk-fail') + '">' + (ok ? '✓' : '✗') + '</span>';
+    }
+
+    var header = '<div class="llave-pred-header"><span>🔮 Tu llave predicha</span>' +
+      '<span class="pts' + (pts > 0 ? '' : ' zero') + '">' + pts + ' pts</span></div>';
+
+    var rowLocal = '<div class="llave-team pred">' +
+      (predTeams.flagLocal ? '<img class="p-flag" src="' + predTeams.flagLocal + '">' : '') +
+      '<span class="code">' + esc(predTeams.local || '?') + '</span>' + chk(lOk) +
+      (hasPred ? '<span class="score">' + pred.gol1 + '</span>' : '') + '</div>';
+    var rowVisit = '<div class="llave-team pred">' +
+      (predTeams.flagVisit ? '<img class="p-flag" src="' + predTeams.flagVisit + '">' : '') +
+      '<span class="code">' + esc(predTeams.visit || '?') + '</span>' + chk(vOk) +
+      (hasPred ? '<span class="score">' + pred.gol2 + '</span>' : '') + '</div>';
+
+    var nota = bonusEquipos === null ? '' :
+      '<div class="llave-equipos-nota">Equipos en llave: <b>+' + bonusEquipos + ' pts</b></div>';
+
+    return header + rowLocal + rowVisit + nota;
+  }
+
   function matchBoxLlave(id, d) {
-    var teams = d.matchTeams && d.matchTeams[id];
-    var res   = d.matchResults && d.matchResults[id];
-    var pred  = d.matchPreds && d.matchPreds[id];
-    var pts   = (d.matchPts && d.matchPts[id]) || 0;
-    var et    = d.matchExtraTime && d.matchExtraTime[id];
+    var teams     = d.matchTeams && d.matchTeams[id];
+    var res       = d.matchResults && d.matchResults[id];
+    var pred      = d.matchPreds && d.matchPreds[id];
+    var pts       = (d.matchPts && d.matchPts[id]) || 0;
+    var et        = d.matchExtraTime && d.matchExtraTime[id];
+    var predTeams = d.matchPredTeams && d.matchPredTeams[id];
+    var hasPredTeams = predTeams && (predTeams.local || predTeams.visit);
+
+    // Bloque de predicción: de octavos en adelante (hay predTeams) se muestran los equipos
+    // que el participante puso en la llave junto con el marcador que predijo y los puntos
+    // por acierto de equipos. En R32 (sin predTeams, el admin fija los equipos) se mantiene
+    // el marcador simple de siempre.
+    var bloquePred;
+    if (hasPredTeams) {
+      bloquePred = bloqueLlavePredicha(predTeams, teams, pred, pts);
+    } else {
+      var hasPred = pred && pred.gol1 !== '' && pred.gol1 !== null && pred.gol1 !== undefined
+                         && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
+      if (hasPred) {
+        var ptsClass = pts > 0 ? '' : 'zero';
+        bloquePred = '<div class="llave-pred"><span>🎯 ' + pred.gol1 + '–' + pred.gol2 + '</span>' +
+          '<span class="pts ' + ptsClass + '">' + pts + ' pts</span></div>';
+      } else {
+        bloquePred = '<div class="llave-pred"><span class="nopred">sin predicción cargada</span></div>';
+      }
+    }
 
     if (!teams) {
       return '<div class="llave-match tbd">' +
         '<div class="meta"><span>' + esc(id) + '</span><span>Por definir</span></div>' +
         '<div class="llave-team tbd-name"><span class="code">Equipo A</span></div>' +
         '<div class="llave-team tbd-name"><span class="code">Equipo B</span></div>' +
-        '<div class="llave-pred"><span class="nopred">predicción bloqueada hasta llenar bracket</span></div>' +
+        (hasPredTeams ? bloquePred : '<div class="llave-pred"><span class="nopred">predicción bloqueada hasta llenar bracket</span></div>') +
         '</div>';
     }
 
@@ -1019,19 +1091,10 @@
       '<span class="code">' + esc(teams.visit) + '</span>' +
       (jugado ? '<span class="score">' + res.gol2 + '</span>' : '') + '</div>';
 
-    var hasPred = pred && pred.gol1 !== '' && pred.gol1 !== null && pred.gol1 !== undefined
-                       && pred.gol2 !== '' && pred.gol2 !== null && pred.gol2 !== undefined;
-    var predLine = '<div class="llave-pred"><span class="nopred">sin predicción cargada</span></div>';
-    if (hasPred) {
-      var ptsClass = pts > 0 ? '' : 'zero';
-      predLine = '<div class="llave-pred"><span>🎯 ' + pred.gol1 + '–' + pred.gol2 + '</span>' +
-        '<span class="pts ' + ptsClass + '">' + pts + ' pts</span></div>';
-    }
-
     return '<div class="llave-match' + (jugado ? '' : ' tbd') + '">' +
       '<div class="meta"><span>' + (jugado ? 'Finalizado' : 'Por jugar') + '</span>' +
       (et ? '<span class="et-tag">(90\')</span>' : '') + '</div>' +
-      rowLocal + rowVisit + predLine +
+      rowLocal + rowVisit + bloquePred +
       '</div>';
   }
 
@@ -1063,7 +1126,15 @@
     RONDA_ORDEN.slice().reverse().forEach(function(ronda) {
       var jugados = ronda.ids.filter(function(id) {
         return d.matchResults && d.matchResults[id] !== undefined;
-      }).reverse();
+      });
+      // Más reciente primero según la fecha real del partido (matchFecha); si no hay
+      // fecha para alguno de los dos, cae a orden alfabético inverso de ID como fallback.
+      jugados.sort(function(a, b) {
+        var fa = (d.matchFecha && d.matchFecha[a]) || '';
+        var fb = (d.matchFecha && d.matchFecha[b]) || '';
+        if (fa && fb) return fb.localeCompare(fa);
+        return b.localeCompare(a);
+      });
       if (jugados.length === 0) return;
 
       partidosHtml += '<div class="seccion-titulo">' + ronda.label + '</div>' +
