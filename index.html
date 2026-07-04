@@ -717,7 +717,9 @@
       return;
     }
 
-    // Ordenar siempre en el cliente: más reciente primero; R32 por fechaUtc descendente
+    // Ordenar siempre en el cliente: más reciente primero por ronda; dentro de
+    // cada ronda (R32, R16, QF, SF, Final/3ro), por fechaUtc descendente cuando
+    // esté disponible — mismo criterio para todas las rondas eliminatorias.
     var STATS_ORDER = ['FINAL', '3RD-', 'SF-', 'QF-', 'R16-', 'R32-', 'COL-G'];
     matches.sort(function(a, b) {
       var oa = STATS_ORDER.findIndex(function(p) { return a.id.startsWith(p); });
@@ -725,8 +727,7 @@
       if (oa < 0) oa = 99;
       if (ob < 0) ob = 99;
       if (oa !== ob) return oa - ob;
-      if (a.id.startsWith('R32-') && a.fechaUtc && b.fechaUtc)
-        return b.fechaUtc.localeCompare(a.fechaUtc);
+      if (a.fechaUtc && b.fechaUtc) return b.fechaUtc.localeCompare(a.fechaUtc);
       return a.id.localeCompare(b.id);
     });
 
