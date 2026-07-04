@@ -254,14 +254,7 @@
       border-radius: 3px;
     }
 
-    /* Línea 2: llave predicha R16+ */
-    .p-llave {
-      font-size: 0.72rem;
-      color: #7a869a;
-      margin-top: 4px;
-    }
-
-    /* Línea 3: predicción del participante */
+    /* Línea 2: predicción del participante */
     .p-pred-line {
       font-size: 0.75rem;
       color: #1565c0;
@@ -269,7 +262,7 @@
     }
     .partido-fila.sin-pts .p-pred-line { color: #aaa; }
 
-    /* Línea 4: desglose de puntos */
+    /* Línea 3: verificaciones (checks) que suman los puntos del partido */
     .p-desglose {
       font-size: 0.70rem;
       color: #8d99a8;
@@ -958,21 +951,54 @@
     return badge(ok1, 'Gol ' + local) + ' &nbsp; ' + badge(ok2, 'Gol ' + visit) + ' &nbsp; ' + badge(okR, 'Resultado');
   }
 
-  // Devuelve HTML de la línea de llave predicha (R16+): equipos con ✓/✗ por equipo.
-  function llaveHtml(predTeams, actTeams) {
-    var pl = (predTeams.local || '').trim();
-    var pv = (predTeams.visit || '').trim();
-    if (!pl && !pv) return '';
+  // Ícono ✓/✗ suelto, sin etiqueta (ok=null → sin datos, no se muestra nada)
+  function chkIcon(ok) {
+    if (ok === null || ok === undefined) return '';
+    return '<span class="' + (ok ? 'chk-ok' : 'chk-fail') + '">' + (ok ? '✓' : '✗') + '</span>';
+  }
+
+  // Línea combinada (R16+): equipos predichos en la llave + marcador pronosticado, en un solo renglón.
+  function lineaPronosticoEquipos(predTeams, actTeams, pred, hasPred) {
     var actualSet = {};
     if (actTeams && actTeams.local) actualSet[actTeams.local.toLowerCase()] = true;
     if (actTeams && actTeams.visit) actualSet[actTeams.visit.toLowerCase()] = true;
-    var lOk = actualSet[pl.toLowerCase()] === true;
-    var vOk = actualSet[pv.toLowerCase()] === true;
-    return '<div class="p-llave">🔮 ' +
-      esc(pl) + ' <span class="' + (lOk ? 'chk-ok' : 'chk-fail') + '">' + (lOk ? '✓' : '✗') + '</span>' +
-      ' &nbsp; ' +
-      esc(pv) + ' <span class="' + (vOk ? 'chk-ok' : 'chk-fail') + '">' + (vOk ? '✓' : '✗') + '</span>' +
+    var pl = (predTeams.local || '').trim();
+    var pv = (predTeams.visit || '').trim();
+    var lOk = pl ? actualSet[pl.toLowerCase()] === true : null;
+    var vOk = pv ? actualSet[pv.toLowerCase()] === true : null;
+    var marcador = hasPred ? (' ' + pred.gol1 + ' – ' + pred.gol2 + ' ') : ' — ';
+    return '<div class="p-pred-line">🎯 Pronóstico: ' +
+      esc(pl || '?') + ' ' + chkIcon(lOk) +
+      marcador +
+      esc(pv || '?') + ' ' + chkIcon(vOk) +
       '</div>';
+  }
+
+  // Línea final: solo checks — el total de ✓ debe coincidir con los pts otorgados al partido.
+  function lineaVerificaciones(predTeams, actTeams, pred, res, hasPred, localName, visitName) {
+    if (predTeams) {
+      var actualSet = {};
+      if (actTeams && actTeams.local) actualSet[actTeams.local.toLowerCase()] = true;
+      if (actTeams && actTeams.visit) actualSet[actTeams.visit.toLowerCase()] = true;
+      var pl = (predTeams.local || '').trim().toLowerCase();
+      var pv = (predTeams.visit || '').trim().toLowerCase();
+      var lOk = !!(pl && actualSet[pl]);
+      var vOk = !!(pv && actualSet[pv]);
+      var html = '<div class="p-desglose">Equipos: ' + chkIcon(lOk) + chkIcon(vOk);
+      if (lOk && vOk && hasPred && res) {
+        var g1p = Number(pred.gol1), g2p = Number(pred.gol2);
+        var g1r = Number(res.gol1),  g2r = Number(res.gol2);
+        html += '   Gol ' + esc(localName) + ': ' + chkIcon(g1p === g1r) +
+                '   Gol ' + esc(visitName) + ': ' + chkIcon(g2p === g2r) +
+                '   Resultado: ' + chkIcon(Math.sign(g1p - g2p) === Math.sign(g1r - g2r));
+      }
+      html += '</div>';
+      return html;
+    }
+    if (hasPred && res) {
+      return '<div class="p-desglose">' + desgloseScoreHtml(pred, res, localName, visitName) + '</div>';
+    }
+    return '';
   }
 
   var vistaModalActual = 'lista'; // 'lista' | 'llave' — se recuerda entre aperturas del modal
@@ -1197,38 +1223,20 @@
             flagV + '<span>' + esc(visitName) + '</span>' + etTag +
           '</div>';
 
-        // Línea 2 (R16+): llave predicha con ✓/✗
-        var lineaLlave = predTeams ? llaveHtml(predTeams, actTeams) : '';
+        // Línea 2: pronóstico — para R16+ (predTeams) combina equipos predichos + marcador
+        // en un solo renglón; para Grupos/R32 (sin predTeams) es solo el marcador.
+        var lineaPred = predTeams
+          ? lineaPronosticoEquipos(predTeams, actTeams, pred, hasPred)
+          : (hasPred
+              ? '<div class="p-pred-line">🎯 Pronóstico: ' + pred.gol1 + ' – ' + pred.gol2 + '</div>'
+              : '<div class="p-pred-line">sin predicción</div>');
 
-        // Línea 3: predicción del participante
-        var lineaPred = hasPred
-          ? '<div class="p-pred-line">🎯 Pronóstico: ' + pred.gol1 + ' – ' + pred.gol2 + '</div>'
-          : '<div class="p-pred-line">sin predicción</div>';
-
-        // Línea 4: desglose de puntos
-        var lineaDesglose = '';
-        if (hasPred && res) {
-          if (predTeams) {
-            var actualSet = {};
-            if (actTeams && actTeams.local) actualSet[actTeams.local.toLowerCase()] = true;
-            if (actTeams && actTeams.visit) actualSet[actTeams.visit.toLowerCase()] = true;
-            var pl = (predTeams.local || '').trim().toLowerCase();
-            var pv = (predTeams.visit || '').trim().toLowerCase();
-            var ambosOk = pl && pv && actualSet[pl] && actualSet[pv];
-            lineaDesglose = '<div class="p-desglose">' +
-              (ambosOk
-                ? desgloseScoreHtml(pred, res, localName, visitName)
-                : '<span class="chk-fail">✗</span> equipos incorrectos en llave') +
-              '</div>';
-          } else {
-            lineaDesglose = '<div class="p-desglose">' + desgloseScoreHtml(pred, res, localName, visitName) + '</div>';
-          }
-        }
+        // Línea 3: verificaciones — solo checks; su conteo coincide con los pts del partido
+        var lineaDesglose = lineaVerificaciones(predTeams, actTeams, pred, res, hasPred, localName, visitName);
 
         partidosHtml += '<div class="' + cls + '">' +
           '<div class="p-info">' +
             lineaResultado +
-            lineaLlave +
             lineaPred +
             lineaDesglose +
           '</div>' +
