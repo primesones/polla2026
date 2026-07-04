@@ -566,15 +566,7 @@
     .bono-fill.bronze { background: #8b5c2a; }
     .bono-cnt    { font-size: 0.70rem; color: #8a9bb0; min-width: 16px; text-align: right; flex-shrink: 0; }
 
-    .llave-match {
-      background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
-      padding: 10px 12px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    }
-    .llave-match-titulo { font-size: 0.82rem; font-weight: 600; color: #1a3c5e; margin-bottom: 7px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .llave-estado { font-size: 0.62rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
-    .llave-estado.jugado    { background: #e8f5e9; color: #1e8449; }
-    .llave-estado.pendiente { background: #fff3e0; color: #b26a00; }
-    .llave-bar-cont { display: flex; height: 22px; border-radius: 4px; overflow: hidden; gap: 1px; }
+    .llave-bar-cont { display: flex; height: 22px; border-radius: 4px; overflow: hidden; gap: 1px; margin-top: 8px; }
     .llave-seg {
       display: flex; align-items: center; justify-content: center;
       font-size: 0.65rem; font-weight: 700; color: #fff; overflow: hidden; white-space: nowrap;
@@ -599,10 +591,6 @@
       font-size: 0.72rem; color: #536571; text-align: center;
       background: #f4f7fa; border: 1px solid #e2e8f0; border-radius: 6px;
       padding: 6px 10px; margin: 4px 0 18px;
-    }
-    .llave-marcador-nota {
-      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.5px; color: #8a9bb0; margin: 10px 0 6px;
     }
   </style>
 </head>
@@ -766,6 +754,8 @@
       var wPct = (m.W / tot * 100).toFixed(0);
       var dPct = (m.D / tot * 100).toFixed(0);
       var lPct = (m.L / tot * 100).toFixed(0);
+      var esLlave = m.ambos !== undefined;  // R16+: marcador viene filtrado a quienes acertaron ambos equipos
+      var sufijoConteo = esLlave ? ' acertaron ambos equipos' : ' predicciones';
 
       // Header del acordeón: con banderas y marcador real si está disponible
       var tituloHtml, metaHtml;
@@ -781,10 +771,10 @@
           '<span class="ac-equipo-nm">' + esc(m.visit) + '</span>' +
           '</div>';
         var fechaStr = m.fechaUtc ? fechaBogota(m.fechaUtc) : '';
-        metaHtml = (fechaStr || esc(m.label)) + ' &nbsp;·&nbsp; ' + m.total + '/' + m.totalPartic + ' predicciones';
+        metaHtml = (fechaStr || esc(m.label)) + ' &nbsp;·&nbsp; ' + m.total + '/' + m.totalPartic + sufijoConteo;
       } else {
         tituloHtml = '<div class="ac-titulo">' + esc(m.local) + ' vs ' + esc(m.visit) + '</div>';
-        metaHtml   = esc(m.label) + ' &nbsp;·&nbsp; ' + m.total + '/' + m.totalPartic + ' predicciones';
+        metaHtml   = esc(m.label) + ' &nbsp;·&nbsp; ' + m.total + '/' + m.totalPartic + sufijoConteo;
       }
 
       html += '<div class="ac-item" id="ac-' + esc(m.id) + '">' +
@@ -813,10 +803,37 @@
     var tot  = m.total > 0 ? m.total : 1;
     var maxC = m.maxCount > 0 ? m.maxCount : 1;
     var html = '';
+    var esLlave = m.ambos !== undefined;  // R16+: llegó con desglose de acierto de llave
+    var sufijoLlave = esLlave ? ' (entre quienes acertaron ambos equipos)' : '';
+
+    // Acierto de llave — solo R16+: ¿el participante predijo los dos equipos del cruce?
+    if (esLlave) {
+      var totLlave = (m.ambos + m.uno + m.ninguno + m.sinData) || 1;
+      var segs = [
+        ['ambos',   m.ambos,   '#2e7d32', 'Ambos ✓'],
+        ['uno',     m.uno,     '#f9a825', 'Uno ✓'],
+        ['ninguno', m.ninguno, '#c62828', 'Ninguno'],
+        ['sinData', m.sinData, '#d5dce4', 'S/d'],
+      ];
+      html += '<div class="ac-seccion">Acierto de llave — equipos predichos</div>';
+      html += '<div class="llave-bar-cont">';
+      segs.forEach(function(s) {
+        if (!s[1]) return;
+        var pct = (s[1] / totLlave * 100).toFixed(1);
+        html += '<div class="llave-seg ' + s[0] + '" style="flex:' + s[1] + '">' +
+          (parseFloat(pct) >= 10 ? s[1] : '') + '</div>';
+      });
+      html += '</div><div class="llave-leyenda">';
+      segs.forEach(function(s) {
+        if (!s[1]) return;
+        html += '<span><span class="llave-dot" style="background:' + s[2] + '"></span>' + s[3] + ': ' + s[1] + '</span>';
+      });
+      html += '</div>';
+    }
 
     // W/D/L
     var isColMatch = m.id.startsWith('COL-G');
-    html += '<div class="ac-seccion">' + (isColMatch ? 'Resultado Colombia' : 'Resultado') + '</div>';
+    html += '<div class="ac-seccion">' + (isColMatch ? 'Resultado Colombia' : 'Resultado') + sufijoLlave + '</div>';
     var wdlRows = [
       { lbl: isColMatch ? 'Victoria' : 'Gana ' + esc(m.local), cnt: m.W, pctCls: 'wdl-pct-w', fillCls: 'wdl-fill-w' },
       { lbl: 'Empate',                                           cnt: m.D, pctCls: 'wdl-pct-d', fillCls: 'wdl-fill-d' },
@@ -834,7 +851,7 @@
 
     // Marcadores
     if (m.sortedScores && m.sortedScores.length > 0) {
-      html += '<div class="ac-seccion">Marcadores más apostados (' + esc(m.local) + ' — ' + esc(m.visit) + ')</div>';
+      html += '<div class="ac-seccion">Marcadores más apostados (' + esc(m.local) + ' — ' + esc(m.visit) + ')' + sufijoLlave + '</div>';
       m.sortedScores.forEach(function(sc, i) {
         var w = (sc[1] / maxC * 100).toFixed(1);
         var pct = (sc[1] / tot * 100).toFixed(1);
@@ -1286,14 +1303,11 @@
     html += _renderBonoCard('🥉 3er puesto', data.tercero    || [], 'bronze');
     html += '</div>';
 
-    // 2 — Aciertos de llave (partidos con cruce ya definido, jugados o no)
-    var llave = data.aciertosLlave || [];
-    if (llave.length > 0) {
-      html += '<div class="f2-sub">Aciertos de llave y marcadores apostados</div>';
-      llave.forEach(function(m) { html += _renderLlaveMatch(m); });
-    }
+    // Los partidos R16+ (aciertos de llave y marcadores apostados) ya no se
+    // muestran aquí — viven en el acordeón principal (?format=statsjson),
+    // igual que Grupos Colombia y R32 (ver STATS_R16-XX, etc. en estadisticas.gs).
 
-    // 3 — Equipos más predichos por ronda
+    // 2 — Equipos más predichos por ronda
     var rondas = data.equiposPorRonda || {};
     var RONDAS_DEF = [
       { key: 'R16',   label: 'Octavos de final' },
@@ -1347,47 +1361,6 @@
     return html + '</div>';
   }
 
-  function _renderLlaveMatch(m) {
-    var tot = m.total || 1;
-    function seg(cls, n) {
-      if (!n) return '';
-      var pct = (n / tot * 100).toFixed(1);
-      return '<div class="llave-seg ' + cls + '" style="flex:' + n + '">' +
-        (parseFloat(pct) >= 10 ? n : '') + '</div>';
-    }
-    var estadoTag = m.jugado
-      ? '<span class="llave-estado jugado">✓ Jugado</span>'
-      : '<span class="llave-estado pendiente">⏳ Aún no se juega</span>';
-    var html = '<div class="llave-match">' +
-      '<div class="llave-match-titulo">' + esc(m.label) + estadoTag + '</div>' +
-      '<div class="llave-bar-cont">' +
-        seg('ambos',   m.ambos)   +
-        seg('uno',     m.uno)     +
-        seg('ninguno', m.ninguno) +
-        seg('sinData', m.sinData) +
-      '</div>' +
-      '<div class="llave-leyenda">';
-    if (m.ambos)   html += '<span><span class="llave-dot" style="background:#2e7d32"></span>Ambos ✓: ' + m.ambos + '</span>';
-    if (m.uno)     html += '<span><span class="llave-dot" style="background:#f9a825"></span>Uno ✓: ' + m.uno + '</span>';
-    if (m.ninguno) html += '<span><span class="llave-dot" style="background:#c62828"></span>Ninguno: ' + m.ninguno + '</span>';
-    if (m.sinData) html += '<span><span class="llave-dot" style="background:#d5dce4"></span>S/d: ' + m.sinData + '</span>';
-    html += '</div>';
-
-    // Marcadores — solo entre quienes acertaron ambos equipos del cruce
-    if (m.marcador && m.marcador.total > 0) {
-      var notaMarcador = (m.jugado ? 'Marcadores predichos' : 'Marcadores apostados') +
-        ' — solo entre quienes acertaron ambos equipos (' + m.marcador.total + ')';
-      html += '<div class="llave-marcador-nota">' + notaMarcador + '</div>';
-      html += renderStatsBody({
-        id: m.id, local: m.local, visit: m.visit,
-        W: m.marcador.W, D: m.marcador.D, L: m.marcador.L,
-        total: m.marcador.total, maxCount: m.marcador.maxCount,
-        sortedScores: m.marcador.sortedScores,
-      });
-    }
-
-    return html + '</div>';
-  }
 </script>
 
 </body>
