@@ -570,7 +570,10 @@
       background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
       padding: 10px 12px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
-    .llave-match-titulo { font-size: 0.82rem; font-weight: 600; color: #1a3c5e; margin-bottom: 7px; }
+    .llave-match-titulo { font-size: 0.82rem; font-weight: 600; color: #1a3c5e; margin-bottom: 7px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .llave-estado { font-size: 0.62rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .llave-estado.jugado    { background: #e8f5e9; color: #1e8449; }
+    .llave-estado.pendiente { background: #fff3e0; color: #b26a00; }
     .llave-bar-cont { display: flex; height: 22px; border-radius: 4px; overflow: hidden; gap: 1px; }
     .llave-seg {
       display: flex; align-items: center; justify-content: center;
@@ -1283,10 +1286,10 @@
     html += _renderBonoCard('🥉 3er puesto', data.tercero    || [], 'bronze');
     html += '</div>';
 
-    // 2 — Aciertos de llave (solo si hay partidos jugados)
+    // 2 — Aciertos de llave (partidos con cruce ya definido, jugados o no)
     var llave = data.aciertosLlave || [];
     if (llave.length > 0) {
-      html += '<div class="f2-sub">Aciertos de llave — partidos jugados</div>';
+      html += '<div class="f2-sub">Aciertos de llave y marcadores apostados</div>';
       llave.forEach(function(m) { html += _renderLlaveMatch(m); });
     }
 
@@ -1352,8 +1355,11 @@
       return '<div class="llave-seg ' + cls + '" style="flex:' + n + '">' +
         (parseFloat(pct) >= 10 ? n : '') + '</div>';
     }
+    var estadoTag = m.jugado
+      ? '<span class="llave-estado jugado">✓ Jugado</span>'
+      : '<span class="llave-estado pendiente">⏳ Aún no se juega</span>';
     var html = '<div class="llave-match">' +
-      '<div class="llave-match-titulo">' + esc(m.label) + '</div>' +
+      '<div class="llave-match-titulo">' + esc(m.label) + estadoTag + '</div>' +
       '<div class="llave-bar-cont">' +
         seg('ambos',   m.ambos)   +
         seg('uno',     m.uno)     +
@@ -1367,9 +1373,11 @@
     if (m.sinData) html += '<span><span class="llave-dot" style="background:#d5dce4"></span>S/d: ' + m.sinData + '</span>';
     html += '</div>';
 
-    // Marcadores predichos — solo entre quienes acertaron ambos equipos del cruce
+    // Marcadores — solo entre quienes acertaron ambos equipos del cruce
     if (m.marcador && m.marcador.total > 0) {
-      html += '<div class="llave-marcador-nota">Marcadores predichos — solo entre quienes acertaron ambos equipos (' + m.marcador.total + ')</div>';
+      var notaMarcador = (m.jugado ? 'Marcadores predichos' : 'Marcadores apostados') +
+        ' — solo entre quienes acertaron ambos equipos (' + m.marcador.total + ')';
+      html += '<div class="llave-marcador-nota">' + notaMarcador + '</div>';
       html += renderStatsBody({
         id: m.id, local: m.local, visit: m.visit,
         W: m.marcador.W, D: m.marcador.D, L: m.marcador.L,
