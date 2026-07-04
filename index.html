@@ -591,6 +591,16 @@
     .equipo-track  { width: 80px; height: 8px; background: #e8edf2; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
     .equipo-fill   { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #1a3c5e, #2d6a9f); }
     .equipo-cnt    { font-size: 0.72rem; color: #8a9bb0; min-width: 28px; text-align: right; flex-shrink: 0; }
+
+    .f2-participacion {
+      font-size: 0.72rem; color: #536571; text-align: center;
+      background: #f4f7fa; border: 1px solid #e2e8f0; border-radius: 6px;
+      padding: 6px 10px; margin: 4px 0 18px;
+    }
+    .llave-marcador-nota {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #8a9bb0; margin: 10px 0 6px;
+    }
   </style>
 </head>
 <body>
@@ -1255,6 +1265,16 @@
 
     var html = '<div class="f2-divider">⚽ Fase 2 — Eliminatorias</div>';
 
+    // 0 — Participación
+    if (data.participacion) {
+      var pp = data.participacion;
+      html += '<div class="f2-participacion">' +
+        '✓ ' + pp.completas + ' completas &nbsp;·&nbsp; ✗ ' + pp.incompletas + ' incompletas &nbsp;·&nbsp; ○ ' + pp.vacias + ' vacías' +
+        (pp.errores ? ' &nbsp;·&nbsp; ⚠ ' + pp.errores + ' errores' : '') +
+        ' &nbsp;(' + pp.total + ' planillas)' +
+        '</div>';
+    }
+
     // 1 — Pronósticos de posición final
     html += '<div class="f2-sub">Pronósticos de posición final · ' + data.totalPlanillas + ' planillas</div>';
     html += '<div class="bono-grid">';
@@ -1345,7 +1365,20 @@
     if (m.uno)     html += '<span><span class="llave-dot" style="background:#f9a825"></span>Uno ✓: ' + m.uno + '</span>';
     if (m.ninguno) html += '<span><span class="llave-dot" style="background:#c62828"></span>Ninguno: ' + m.ninguno + '</span>';
     if (m.sinData) html += '<span><span class="llave-dot" style="background:#d5dce4"></span>S/d: ' + m.sinData + '</span>';
-    return html + '</div></div>';
+    html += '</div>';
+
+    // Marcadores predichos — solo entre quienes acertaron ambos equipos del cruce
+    if (m.marcador && m.marcador.total > 0) {
+      html += '<div class="llave-marcador-nota">Marcadores predichos — solo entre quienes acertaron ambos equipos (' + m.marcador.total + ')</div>';
+      html += renderStatsBody({
+        id: m.id, local: m.local, visit: m.visit,
+        W: m.marcador.W, D: m.marcador.D, L: m.marcador.L,
+        total: m.marcador.total, maxCount: m.marcador.maxCount,
+        sortedScores: m.marcador.sortedScores,
+      });
+    }
+
+    return html + '</div>';
   }
 </script>
 
