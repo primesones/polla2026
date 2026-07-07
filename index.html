@@ -585,6 +585,90 @@
       background: #f4f7fa; border: 1px solid #e2e8f0; border-radius: 6px;
       padding: 6px 10px; margin: 4px 0 18px;
     }
+
+    /* ── Pestaña Probabilidades ── */
+    .prob-card {
+      background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 16px 16px 18px; margin-bottom: 18px;
+    }
+    .prob-card h2 { font-size: 0.95rem; color: #1a3c5e; margin-bottom: 4px; }
+    .prob-card .prob-sub { font-size: 0.75rem; color: #6b7a8d; margin-bottom: 12px; }
+    .prob-head-row { display: flex; align-items: center; gap: 6px; }
+    .prob-head-row h2 { margin-bottom: 0; }
+    .prob-info-btn {
+      border: none; background: #eef4fb; color: #2d6a9f; width: 19px; height: 19px;
+      border-radius: 50%; font-size: 0.68rem; line-height: 19px; cursor: pointer; padding: 0; flex: none;
+    }
+    .prob-techo-note {
+      display: none; font-size: 0.72rem; line-height: 1.5; color: #52616f;
+      background: #f4f7fa; border: 1px solid #e2e8f0; border-radius: 7px;
+      padding: 9px 11px; margin: 9px 0 4px;
+    }
+    .prob-techo-note.open { display: block; }
+    .prob-metodo { margin: 12px 0 4px; font-size: 0.76rem; }
+    .prob-metodo summary {
+      cursor: pointer; font-weight: 600; color: #2d6a9f; list-style: none;
+      display: flex; align-items: center; gap: 5px; padding: 2px 0;
+    }
+    .prob-metodo summary::-webkit-details-marker { display: none; }
+    .prob-metodo .prob-chev { font-size: 0.65rem; transition: transform 0.15s; }
+    .prob-metodo[open] .prob-chev { transform: rotate(180deg); }
+    .prob-explain { font-size: 0.76rem; line-height: 1.55; color: #384454; padding-left: 16px; margin-top: 9px; }
+    .prob-explain li { margin-bottom: 6px; }
+    .prob-explain b { color: #1a2535; }
+    .prob-explain a { color: #2d6a9f; }
+
+    .prob-table-wrap { max-height: 440px; overflow-y: auto; margin-top: 8px; }
+    table.prob-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    table.prob-table th, table.prob-table td { padding: 7px 7px; text-align: left; border-bottom: 1px solid #eef1f5; }
+    table.prob-table th {
+      font-size: 0.63rem; text-transform: uppercase; letter-spacing: 0.3px; color: #8b96a3;
+      font-weight: 700; position: sticky; top: 0; background: #fff;
+    }
+    table.prob-table td.prob-num, table.prob-table th.prob-num { text-align: right; }
+    table.prob-table tr:last-child td { border-bottom: none; }
+    .prob-bar-cell { position: relative; }
+    .prob-bar-bg   { position: absolute; inset: 3px 4px; background: #eef4fb; border-radius: 3px; z-index: 0; }
+    .prob-bar-fill { position: absolute; top: 3px; bottom: 3px; left: 4px; background: #2d6a9f; border-radius: 3px; z-index: 1; }
+    .prob-bar-text { position: relative; z-index: 2; font-weight: 700; color: #1a3c5e; }
+
+    .prob-chart-wrap { position: relative; }
+    #prob-chart-svg { width: 100%; height: auto; display: block; }
+    .prob-gridline { stroke: #e8edf3; stroke-width: 1; }
+    .prob-axis-text { fill: #8b96a3; font-size: 9px; }
+    .prob-end-label { font-size: 10px; font-weight: 700; }
+    .prob-hover-line { stroke: #c3cedb; stroke-width: 1; }
+    .prob-hover-dot  { stroke: #fff; stroke-width: 2; }
+    #prob-tooltip {
+      position: absolute; pointer-events: none; background: #1a2535; color: #fff;
+      font-size: 0.68rem; line-height: 1.5; padding: 7px 9px; border-radius: 7px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25); opacity: 0; transition: opacity .1s;
+      max-width: 210px; z-index: 5;
+    }
+    #prob-tooltip .prob-tt-title { font-weight: 700; margin-bottom: 3px; color: #cfe0f5; }
+    #prob-tooltip .prob-tt-row { display: flex; justify-content: space-between; gap: 10px; }
+
+    .prob-quick-actions { display: flex; gap: 7px; margin: 12px 0 9px; flex-wrap: wrap; }
+    .prob-quick-actions button {
+      font-size: 0.7rem; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+      border: 1px solid #c9d6e3; background: #f5f8fc; color: #2d6a9f; cursor: pointer;
+    }
+    .prob-quick-actions button:hover { background: #e8f0f9; }
+    .prob-search-box {
+      width: 100%; padding: 6px 9px; border: 1px solid #d8e0e8; border-radius: 7px;
+      font-size: 0.76rem; margin-bottom: 7px; box-sizing: border-box;
+    }
+    .prob-picker-list { max-height: 200px; overflow-y: auto; border: 1px solid #eaeef2; border-radius: 8px; }
+    .prob-picker-row {
+      display: flex; align-items: center; gap: 7px; padding: 5px 8px; font-size: 0.74rem;
+      border-bottom: 1px solid #f2f4f7; cursor: pointer;
+    }
+    .prob-picker-row:last-child { border-bottom: none; }
+    .prob-picker-row:hover { background: #f7f9fb; }
+    .prob-swatch { width: 9px; height: 9px; border-radius: 50%; flex: none; background: transparent; }
+    .prob-picker-alias  { font-weight: 700; color: #1a3c5e; width: 58px; flex: none; }
+    .prob-picker-nombre { color: #52616f; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .prob-picker-total  { font-weight: 600; color: #384454; }
   </style>
 </head>
 <body>
@@ -596,8 +680,9 @@
 
 <div class="tab-bar">
   <div class="tab-bar-inner">
-    <button class="tab activo" id="tab-btn-pos" onclick="cambiarTab('posiciones')">Posiciones</button>
-    <button class="tab"        id="tab-btn-est" onclick="cambiarTab('estadisticas')">Estadísticas</button>
+    <button class="tab activo" id="tab-btn-pos"  onclick="cambiarTab('posiciones')">Posiciones</button>
+    <button class="tab"        id="tab-btn-est"  onclick="cambiarTab('estadisticas')">Estadísticas</button>
+    <button class="tab"        id="tab-btn-prob" onclick="cambiarTab('probabilidades')">Probabilidades</button>
   </div>
 </div>
 
@@ -614,6 +699,62 @@
     <div class="updated" id="stats-updated"></div>
     <div id="stats-contenido"><div class="estado">Cargando estadísticas...</div></div>
     <div id="stats-f2-contenido"></div>
+  </div>
+
+  <!-- Tab Probabilidades -->
+  <div id="tab-probabilidades" style="display:none">
+    <div class="updated" id="prob-updated"></div>
+
+    <div class="prob-card">
+      <div class="prob-head-row">
+        <h2>Probabilidad estimada de terminar de primero</h2>
+        <button class="prob-info-btn" onclick="toggleProbTechoInfo()" title="¿Qué es el techo matemático?">ⓘ</button>
+      </div>
+      <p class="prob-sub">Simulación Monte Carlo del cuadro restante, con cuotas en vivo de <a href="https://polymarket.com" target="_blank" rel="noopener">Polymarket</a> — ordenado de mayor a menor probabilidad</p>
+
+      <div class="prob-techo-note" id="prob-techo-note">
+        <b>¿Por qué no hay una columna "Techo"?</b> Cada planilla tiene un máximo teórico si absolutamente todo le sale perfecto en lo que falta del torneo. Ese máximo suele estar muy por encima de la diferencia de puntos entre el 1° y el último, así que por sí solo casi nunca elimina a nadie — la <b>probabilidad</b> de esta tabla es la que realmente distingue, porque compara escenario por escenario a todas las planillas entre sí, no a cada una por separado.
+        <br><br>
+        <b>Sobre "≈0%":</b> significa que esa planilla no ganó ninguna de las repeticiones simuladas — evidencia de una probabilidad muy baja, no una certeza matemática de que sea imposible.
+      </div>
+
+      <details class="prob-metodo">
+        <summary>¿Cómo se calcula esta probabilidad? <span class="prob-chev">▾</span></summary>
+        <ul class="prob-explain">
+          <li><b>Punto de partida:</b> los puntos ya ganados hoy (partidos jugados), reales, tomados en vivo de <code>Puntuaciones</code>.</li>
+          <li><b>Cuotas — mercado en vivo de <a href="https://polymarket.com" target="_blank" rel="noopener">Polymarket</a>:</b> mercado de predicción con dinero real, API pública, sin costo. Para cruces ya definidos se usa la cuota de ese partido puntual; para cruces aún no definidos (semis, 3er puesto, final) se usa la probabilidad real de mercado de cada equipo de llegar a semifinales.</li>
+          <li><b>Marcador exacto:</b> se calibra un modelo de Poisson propio de cada partido que reproduce exactamente esa cuota, y de ahí se sortea el marcador de cada repetición — no una lista genérica de marcadores igual para todos.</li>
+          <li><b>Cada repetición es un escenario compartido:</b> se simula un cuadro completo por repetición y se compara a todas las planillas contra ese mismo escenario — no es "el mejor caso de cada quien" por separado (eso es el techo).</li>
+          <li><b>Bono final</b> (Campeón/Subcampeón/3er puesto): se lee directo de la predicción real guardada en cada planilla.</li>
+          <li>Es una <b>proyección ilustrativa</b>, sensible a las cuotas del momento — útil para ver dónde está la carrera hoy, no una garantía.</li>
+        </ul>
+      </details>
+
+      <div class="prob-table-wrap">
+        <table class="prob-table">
+          <thead><tr><th>Alias</th><th>Nombre</th><th class="prob-num">Puntos</th><th>Probabilidad</th></tr></thead>
+          <tbody id="prob-body"><tr><td colspan="4" class="estado">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="prob-card">
+      <h2>Evolución del puntaje acumulado</h2>
+      <p class="prob-sub">Eje X: partidos ya jugados en orden cronológico · Eje Y: puntos acumulados. Por defecto se muestran los 3 primeros lugares.</p>
+      <div class="prob-chart-wrap">
+        <svg id="prob-chart-svg" viewBox="0 0 680 360"></svg>
+        <div id="prob-tooltip"></div>
+      </div>
+
+      <div class="prob-quick-actions">
+        <button onclick="probSelectTop(3)">Top 3</button>
+        <button onclick="probSelectTop(10)">Top 10</button>
+        <button onclick="probSelectNone()">Ninguno</button>
+      </div>
+
+      <input class="prob-search-box" id="prob-search" placeholder="Buscar por alias o nombre…" oninput="probRenderPicker()">
+      <div class="prob-picker-list" id="prob-picker"></div>
+    </div>
   </div>
 
 </div>
@@ -659,13 +800,17 @@
     });
 
   // ── Tabs ─────────────────────────────────────────────────
+  var probYaCargada = false;
+
   function cambiarTab(tab) {
-    var esPos = tab === 'posiciones';
-    document.getElementById('tab-posiciones').style.display  = esPos ? '' : 'none';
-    document.getElementById('tab-estadisticas').style.display = esPos ? 'none' : '';
-    document.getElementById('tab-btn-pos').classList.toggle('activo', esPos);
-    document.getElementById('tab-btn-est').classList.toggle('activo', !esPos);
-    if (!esPos && !statsYaCargadas) cargarEstadisticas();
+    document.getElementById('tab-posiciones').style.display     = (tab === 'posiciones')     ? '' : 'none';
+    document.getElementById('tab-estadisticas').style.display   = (tab === 'estadisticas')   ? '' : 'none';
+    document.getElementById('tab-probabilidades').style.display = (tab === 'probabilidades') ? '' : 'none';
+    document.getElementById('tab-btn-pos').classList.toggle('activo',  tab === 'posiciones');
+    document.getElementById('tab-btn-est').classList.toggle('activo',  tab === 'estadisticas');
+    document.getElementById('tab-btn-prob').classList.toggle('activo', tab === 'probabilidades');
+    if (tab === 'estadisticas' && !statsYaCargadas) cargarEstadisticas();
+    if (tab === 'probabilidades' && !probYaCargada) cargarProbabilidades();
   }
 
   // ── Estadísticas ─────────────────────────────────────────
@@ -1368,6 +1513,247 @@
       });
     }
     return html + '</div>';
+  }
+
+  // ── Probabilidades ───────────────────────────────────────
+  var PROB_PALETTE = ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#4a3aa7', '#e34948', '#e87ba4', '#eb6834'];
+  var probMatches = [], probSeries = [], probByAlias = {}, probSelected = [];
+
+  function cargarProbabilidades() {
+    Promise.all([
+      fetch(BASE_URL + '?format=probabilidades').then(function(r) { return r.json(); }),
+      fetch(BASE_URL + '?format=evolucion').then(function(r) { return r.json(); }),
+    ]).then(function(res) {
+      probYaCargada = true;
+      var probData = res[0], evoData = res[1];
+
+      if (probData && probData.error) {
+        document.getElementById('prob-body').innerHTML =
+          '<tr><td colspan="4" class="estado">' + esc(probData.error) + '</td></tr>';
+      } else if (probData) {
+        document.getElementById('prob-updated').textContent =
+          'Actualizado: ' + (probData.generado || '') + ' · ' + (probData.iteraciones || 0).toLocaleString('es-CO') + ' escenarios simulados';
+        renderizarProbTabla(probData.resultados || []);
+      }
+
+      if (evoData && evoData.matches) {
+        probMatches = evoData.matches;
+        probSeries  = evoData.series || [];
+        probByAlias = {};
+        probSeries.forEach(function(s) { probByAlias[s.alias + '|' + s.url] = s; });
+        var top3 = probSeries.slice().sort(function(a, b) { return b.total - a.total; }).slice(0, 3);
+        probSelected = top3.map(function(s) { return s.alias + '|' + s.url; });
+        probRenderChart();
+        probRenderPicker();
+      }
+    }).catch(function() {
+      document.getElementById('prob-body').innerHTML =
+        '<tr><td colspan="4" class="estado">Error al cargar probabilidades. Intenta de nuevo.</td></tr>';
+    });
+  }
+
+  function toggleProbTechoInfo() {
+    document.getElementById('prob-techo-note').classList.toggle('open');
+  }
+
+  function fmtProbPct(v) {
+    if (v >= 1) return v.toFixed(1) + '%';
+    if (v >= 0.01) return v.toFixed(2) + '%';
+    if (v > 0) return '<0.01%';
+    return '≈0%';
+  }
+
+  function renderizarProbTabla(resultados) {
+    var body = document.getElementById('prob-body');
+    body.innerHTML = '';
+    var maxProb = 0;
+    resultados.forEach(function(r) { if (r.probPct > maxProb) maxProb = r.probPct; });
+    resultados.forEach(function(r) {
+      var tr = document.createElement('tr');
+      var pct = maxProb > 0 ? (r.probPct / maxProb * 100) : 0;
+      tr.title = 'Techo matemático: ' + r.techo + ' pts (máximo teórico si todo le sale perfecto)';
+      tr.innerHTML =
+        '<td><b>' + esc(r.alias) + '</b></td><td>' + esc(r.nombre) + '</td>' +
+        '<td class="prob-num">' + r.total + '</td>' +
+        '<td class="prob-bar-cell"><div class="prob-bar-bg"></div>' +
+        '<div class="prob-bar-fill" style="width:' + pct + '%"></div>' +
+        '<span class="prob-bar-text">' + fmtProbPct(r.probPct) + '</span></td>';
+      body.appendChild(tr);
+    });
+  }
+
+  // ── Gráfico de evolución (SVG) ────────────────────────────
+  var PROB_W = 680, PROB_H = 360, PROB_ML = 32, PROB_MR = 74, PROB_MT = 14, PROB_MB = 42;
+  var probInnerW = PROB_W - PROB_ML - PROB_MR, probInnerH = PROB_H - PROB_MT - PROB_MB;
+
+  function probKeyOf(s) { return s.alias + '|' + s.url; }
+  function probXPos(i) { return PROB_ML + (i / Math.max(1, probMatches.length - 1)) * probInnerW; }
+  function probYPos(v, yMax) { return PROB_MT + probInnerH - (v / yMax) * probInnerH; }
+  function probYMax() {
+    var m = 10;
+    probSeries.forEach(function(s) {
+      var last = s.cum.length ? s.cum[s.cum.length - 1] : 0;
+      if (last > m) m = last;
+    });
+    return Math.ceil((m + 3) / 5) * 5;
+  }
+
+  function probSelectTop(n) {
+    var top = probSeries.slice().sort(function(a, b) { return b.total - a.total; }).slice(0, n);
+    probSelected = top.map(probKeyOf);
+    probRenderChart(); probRenderPicker();
+  }
+  function probSelectNone() { probSelected = []; probRenderChart(); probRenderPicker(); }
+
+  function probToggle(key) {
+    var i = probSelected.indexOf(key);
+    if (i >= 0) probSelected.splice(i, 1); else probSelected.push(key);
+    probRenderChart(); probRenderPicker();
+  }
+
+  var svgNS = 'http://www.w3.org/2000/svg';
+
+  function probRenderChart() {
+    var svg = document.getElementById('prob-chart-svg');
+    if (!svg) return;
+    svg.innerHTML = '';
+    svg.setAttribute('viewBox', '0 0 ' + PROB_W + ' ' + PROB_H);
+    if (probMatches.length === 0) return;
+    var yMax = probYMax();
+
+    for (var s = 0; s <= 5; s++) {
+      var v = (yMax / 5) * s;
+      var y = probYPos(v, yMax);
+      var line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('x1', PROB_ML); line.setAttribute('x2', PROB_W - PROB_MR);
+      line.setAttribute('y1', y); line.setAttribute('y2', y);
+      line.setAttribute('class', 'prob-gridline');
+      svg.appendChild(line);
+      var txt = document.createElementNS(svgNS, 'text');
+      txt.setAttribute('x', PROB_ML - 6); txt.setAttribute('y', y + 3);
+      txt.setAttribute('text-anchor', 'end'); txt.setAttribute('class', 'prob-axis-text');
+      txt.textContent = Math.round(v);
+      svg.appendChild(txt);
+    }
+
+    probMatches.forEach(function(m, i) {
+      if (i % 3 !== 0 && i !== probMatches.length - 1) return;
+      var txt = document.createElementNS(svgNS, 'text');
+      txt.setAttribute('x', probXPos(i)); txt.setAttribute('y', PROB_H - PROB_MB + 15);
+      txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('class', 'prob-axis-text');
+      txt.textContent = 'P' + (i + 1);
+      svg.appendChild(txt);
+    });
+
+    probSelected.forEach(function(key, idx) {
+      var s = probByAlias[key];
+      if (!s) return;
+      var color = PROB_PALETTE[idx % PROB_PALETTE.length];
+      var d = '';
+      s.cum.forEach(function(v, i) {
+        var x = probXPos(i), y = probYPos(v, yMax);
+        d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+      });
+      var path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('d', d.trim());
+      path.setAttribute('fill', 'none'); path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linejoin', 'round'); path.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(path);
+
+      var lastX = probXPos(s.cum.length - 1), lastY = probYPos(s.cum[s.cum.length - 1], yMax);
+      var dot = document.createElementNS(svgNS, 'circle');
+      dot.setAttribute('cx', lastX); dot.setAttribute('cy', lastY); dot.setAttribute('r', 4);
+      dot.setAttribute('fill', color); dot.setAttribute('class', 'prob-hover-dot');
+      svg.appendChild(dot);
+
+      var label = document.createElementNS(svgNS, 'text');
+      label.setAttribute('x', lastX + 6); label.setAttribute('y', lastY + 3);
+      label.setAttribute('class', 'prob-end-label'); label.setAttribute('fill', color);
+      label.textContent = s.alias;
+      svg.appendChild(label);
+    });
+
+    var hoverGroup = document.createElementNS(svgNS, 'g');
+    hoverGroup.setAttribute('id', 'prob-hover-group');
+    svg.appendChild(hoverGroup);
+
+    var capture = document.createElementNS(svgNS, 'rect');
+    capture.setAttribute('x', PROB_ML); capture.setAttribute('y', PROB_MT);
+    capture.setAttribute('width', probInnerW); capture.setAttribute('height', probInnerH);
+    capture.setAttribute('fill', 'transparent');
+    capture.addEventListener('mousemove', function(evt) { probOnHover(evt, svg, yMax); });
+    capture.addEventListener('mouseleave', function() {
+      document.getElementById('prob-tooltip').style.opacity = 0;
+      hoverGroup.innerHTML = '';
+    });
+    svg.appendChild(capture);
+  }
+
+  function probOnHover(evt, svg, yMax) {
+    var rect = svg.getBoundingClientRect();
+    var scaleX = PROB_W / rect.width;
+    var mx = (evt.clientX - rect.left) * scaleX;
+    var idx = Math.round(((mx - PROB_ML) / probInnerW) * (probMatches.length - 1));
+    idx = Math.max(0, Math.min(probMatches.length - 1, idx));
+
+    var hoverGroup = document.getElementById('prob-hover-group');
+    hoverGroup.innerHTML = '';
+    var x = probXPos(idx);
+    var vline = document.createElementNS(svgNS, 'line');
+    vline.setAttribute('x1', x); vline.setAttribute('x2', x);
+    vline.setAttribute('y1', PROB_MT); vline.setAttribute('y2', PROB_MT + probInnerH);
+    vline.setAttribute('class', 'prob-hover-line');
+    hoverGroup.appendChild(vline);
+
+    var rows = probSelected.map(function(key, i) {
+      var s = probByAlias[key];
+      if (!s) return null;
+      return { alias: s.alias, val: s.cum[idx], color: PROB_PALETTE[i % PROB_PALETTE.length] };
+    }).filter(Boolean).sort(function(a, b) { return b.val - a.val; });
+
+    rows.forEach(function(r) {
+      var y = probYPos(r.val, yMax);
+      var dot = document.createElementNS(svgNS, 'circle');
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('r', 4);
+      dot.setAttribute('fill', r.color); dot.setAttribute('class', 'prob-hover-dot');
+      hoverGroup.appendChild(dot);
+    });
+
+    var m = probMatches[idx];
+    var tt = document.getElementById('prob-tooltip');
+    tt.innerHTML = '<div class="prob-tt-title">P' + (idx + 1) + ' · ' + esc(m.label) + '</div>' +
+      rows.map(function(r) {
+        return '<div class="prob-tt-row"><span style="color:' + r.color + '">●</span> ' + esc(r.alias) + ' <b>' + r.val + '</b></div>';
+      }).join('');
+    tt.style.opacity = 1;
+    var wrapRect = svg.parentElement.getBoundingClientRect();
+    var px = (x / PROB_W) * wrapRect.width;
+    tt.style.left = Math.min(px + 10, wrapRect.width - 180) + 'px';
+    tt.style.top = '6px';
+  }
+
+  function probRenderPicker() {
+    var q = document.getElementById('prob-search').value.trim().toLowerCase();
+    var list = probSeries.slice().sort(function(a, b) { return b.total - a.total; })
+      .filter(function(s) { return !q || s.alias.toLowerCase().indexOf(q) > -1 || (s.nombre || '').toLowerCase().indexOf(q) > -1; });
+    var picker = document.getElementById('prob-picker');
+    picker.innerHTML = '';
+    list.forEach(function(s) {
+      var key = probKeyOf(s);
+      var idx = probSelected.indexOf(key);
+      var row = document.createElement('div');
+      row.className = 'prob-picker-row';
+      row.onclick = function(e) { if (e.target.tagName !== 'INPUT') probToggle(key); };
+      row.innerHTML =
+        '<input type="checkbox" ' + (idx >= 0 ? 'checked' : '') + '>' +
+        '<span class="prob-swatch" style="background:' + (idx >= 0 ? PROB_PALETTE[idx % PROB_PALETTE.length] : 'transparent') + '"></span>' +
+        '<span class="prob-picker-alias">' + esc(s.alias) + '</span>' +
+        '<span class="prob-picker-nombre">' + esc(s.nombre || '') + '</span>' +
+        '<span class="prob-picker-total">' + s.total + ' pts</span>';
+      row.querySelector('input').addEventListener('click', function(e) { e.stopPropagation(); probToggle(key); });
+      picker.appendChild(row);
+    });
   }
 
 </script>
