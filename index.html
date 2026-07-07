@@ -682,6 +682,7 @@
   <div class="tab-bar-inner">
     <button class="tab activo" id="tab-btn-pos"  onclick="cambiarTab('posiciones')">Posiciones</button>
     <button class="tab"        id="tab-btn-est"  onclick="cambiarTab('estadisticas')">Estadísticas</button>
+    <button class="tab"        id="tab-btn-evo"  onclick="cambiarTab('evolucion')">Evolución</button>
     <button class="tab"        id="tab-btn-prob" onclick="cambiarTab('probabilidades')">Probabilidades</button>
   </div>
 </div>
@@ -737,6 +738,11 @@
         </table>
       </div>
     </div>
+  </div>
+
+  <!-- Tab Evolución -->
+  <div id="tab-evolucion" style="display:none">
+    <div class="updated" id="evo-updated"></div>
 
     <div class="prob-card">
       <h2>Evolución del puntaje acumulado</h2>
@@ -800,17 +806,21 @@
     });
 
   // ── Tabs ─────────────────────────────────────────────────
-  var probYaCargada = false;
+  var probTablaYaCargada = false;
+  var evoYaCargada = false;
 
   function cambiarTab(tab) {
     document.getElementById('tab-posiciones').style.display     = (tab === 'posiciones')     ? '' : 'none';
     document.getElementById('tab-estadisticas').style.display   = (tab === 'estadisticas')   ? '' : 'none';
+    document.getElementById('tab-evolucion').style.display      = (tab === 'evolucion')      ? '' : 'none';
     document.getElementById('tab-probabilidades').style.display = (tab === 'probabilidades') ? '' : 'none';
     document.getElementById('tab-btn-pos').classList.toggle('activo',  tab === 'posiciones');
     document.getElementById('tab-btn-est').classList.toggle('activo',  tab === 'estadisticas');
+    document.getElementById('tab-btn-evo').classList.toggle('activo',  tab === 'evolucion');
     document.getElementById('tab-btn-prob').classList.toggle('activo', tab === 'probabilidades');
     if (tab === 'estadisticas' && !statsYaCargadas) cargarEstadisticas();
-    if (tab === 'probabilidades' && !probYaCargada) cargarProbabilidades();
+    if (tab === 'evolucion' && !evoYaCargada) cargarEvolucion();
+    if (tab === 'probabilidades' && !probTablaYaCargada) cargarProbTabla();
   }
 
   // ── Estadísticas ─────────────────────────────────────────
@@ -1519,37 +1529,46 @@
   var PROB_PALETTE = ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#4a3aa7', '#e34948', '#e87ba4', '#eb6834'];
   var probMatches = [], probSeries = [], probByAlias = {}, probSelected = [];
 
-  function cargarProbabilidades() {
-    Promise.all([
-      fetch(BASE_URL + '?format=probabilidades').then(function(r) { return r.json(); }),
-      fetch(BASE_URL + '?format=evolucion').then(function(r) { return r.json(); }),
-    ]).then(function(res) {
-      probYaCargada = true;
-      var probData = res[0], evoData = res[1];
-
-      if (probData && probData.error) {
-        document.getElementById('prob-body').innerHTML =
-          '<tr><td colspan="4" class="estado">' + esc(probData.error) + '</td></tr>';
-      } else if (probData) {
+  function cargarProbTabla() {
+    fetch(BASE_URL + '?format=probabilidades')
+      .then(function(r) { return r.json(); })
+      .then(function(probData) {
+        probTablaYaCargada = true;
+        if (probData && probData.error) {
+          document.getElementById('prob-body').innerHTML =
+            '<tr><td colspan="4" class="estado">' + esc(probData.error) + '</td></tr>';
+          return;
+        }
         document.getElementById('prob-updated').textContent =
           'Actualizado: ' + (probData.generado || '') + ' · ' + (probData.iteraciones || 0).toLocaleString('es-CO') + ' escenarios simulados';
         renderizarProbTabla(probData.resultados || []);
-      }
+      })
+      .catch(function() {
+        document.getElementById('prob-body').innerHTML =
+          '<tr><td colspan="4" class="estado">Error al cargar probabilidades. Intenta de nuevo.</td></tr>';
+      });
+  }
 
-      if (evoData && evoData.matches) {
+  function cargarEvolucion() {
+    fetch(BASE_URL + '?format=evolucion')
+      .then(function(r) { return r.json(); })
+      .then(function(evoData) {
+        evoYaCargada = true;
+        if (!evoData || !evoData.matches) return;
         probMatches = evoData.matches;
         probSeries  = evoData.series || [];
         probByAlias = {};
         probSeries.forEach(function(s) { probByAlias[s.alias + '|' + s.url] = s; });
         var top3 = probSeries.slice().sort(function(a, b) { return b.total - a.total; }).slice(0, 3);
         probSelected = top3.map(function(s) { return s.alias + '|' + s.url; });
+        document.getElementById('evo-updated').textContent = '';
         probRenderChart();
         probRenderPicker();
-      }
-    }).catch(function() {
-      document.getElementById('prob-body').innerHTML =
-        '<tr><td colspan="4" class="estado">Error al cargar probabilidades. Intenta de nuevo.</td></tr>';
-    });
+      })
+      .catch(function() {
+        document.getElementById('prob-chart-svg').outerHTML =
+          '<div class="estado">Error al cargar la evolución. Intenta de nuevo.</div>';
+      });
   }
 
   function toggleProbTechoInfo() {
