@@ -632,6 +632,14 @@
     .prob-bar-fill { position: absolute; top: 3px; bottom: 3px; left: 4px; background: #2d6a9f; border-radius: 3px; z-index: 1; }
     .prob-bar-text { position: relative; z-index: 2; font-weight: 700; color: #1a3c5e; }
 
+    table.prob-table tr.prob-elim { opacity: 0.5; }
+    table.prob-table tr.prob-elim .prob-bar-fill { background: #9aa5b1; }
+    .prob-elim-tag {
+      display: inline-block; margin-left: 6px; font-size: 0.58rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.3px; color: #b91c1c; background: #fee2e2;
+      border-radius: 3px; padding: 1px 5px; vertical-align: middle;
+    }
+
     .prob-chart-wrap { position: relative; }
     #prob-chart-svg { width: 100%; height: auto; display: block; }
     .prob-gridline { stroke: #e8edf3; stroke-width: 1; }
@@ -714,7 +722,7 @@
       <p class="prob-sub">Simulación Monte Carlo del cuadro restante, con cuotas en vivo de <a href="https://polymarket.com" target="_blank" rel="noopener">Polymarket</a> — ordenado de mayor a menor probabilidad</p>
 
       <div class="prob-techo-note" id="prob-techo-note">
-        <b>¿Por qué no hay una columna "Techo"?</b> Cada planilla tiene un máximo teórico si absolutamente todo le sale perfecto en lo que falta del torneo. Ese máximo suele estar muy por encima de la diferencia de puntos entre el 1° y el último, así que por sí solo casi nunca elimina a nadie — la <b>probabilidad</b> de esta tabla es la que realmente distingue, porque compara escenario por escenario a todas las planillas entre sí, no a cada una por separado.
+        <b>¿Por qué no hay una columna "Techo"?</b> Cada planilla tiene un máximo teórico si absolutamente todo le sale perfecto en lo que falta del torneo. Cuando ese máximo cae por debajo de lo que ya tiene garantizado el líder, la planilla queda matemáticamente eliminada (marcada abajo) — pero entre las que siguen vivas, la <b>probabilidad</b> es la que realmente distingue, porque compara escenario por escenario a todas las planillas entre sí, no a cada una por separado.
         <br><br>
         <b>Sobre "≈0%":</b> significa que esa planilla no ganó ninguna de las repeticiones simuladas — evidencia de una probabilidad muy baja, no una certeza matemática de que sea imposible.
       </div>
@@ -1585,14 +1593,21 @@
   function renderizarProbTabla(resultados) {
     var body = document.getElementById('prob-body');
     body.innerHTML = '';
-    var maxProb = 0;
-    resultados.forEach(function(r) { if (r.probPct > maxProb) maxProb = r.probPct; });
+    var maxProb = 0, maxTotal = -Infinity;
+    resultados.forEach(function(r) {
+      if (r.probPct > maxProb) maxProb = r.probPct;
+      if (r.total > maxTotal) maxTotal = r.total;
+    });
     resultados.forEach(function(r) {
       var tr = document.createElement('tr');
       var pct = maxProb > 0 ? (r.probPct / maxProb * 100) : 0;
-      tr.title = 'Techo matemático: ' + r.techo + ' pts (máximo teórico si todo le sale perfecto)';
+      if (!r.vivo) tr.className = 'prob-elim';
+      tr.title = r.vivo
+        ? 'Techo matemático: ' + r.techo + ' pts (máximo teórico si todo le sale perfecto)'
+        : 'Eliminado matemáticamente: ni con el máximo teórico (' + r.techo + ' pts) alcanza al líder actual (' + maxTotal + ' pts)';
       tr.innerHTML =
-        '<td><b>' + esc(r.alias) + '</b></td><td>' + esc(r.nombre) + '</td>' +
+        '<td><b>' + esc(r.alias) + '</b>' + (!r.vivo ? ' <span class="prob-elim-tag">Eliminado</span>' : '') + '</td>' +
+        '<td>' + esc(r.nombre) + '</td>' +
         '<td class="prob-num">' + r.total + '</td>' +
         '<td class="prob-bar-cell"><div class="prob-bar-bg"></div>' +
         '<div class="prob-bar-fill" style="width:' + pct + '%"></div>' +
