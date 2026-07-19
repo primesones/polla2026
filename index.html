@@ -271,12 +271,16 @@
 
     .chk-ok   { color: #2e7d32; font-weight: 600; }
     .chk-fail { color: #c62828; font-weight: 600; }
-    .chk-pend { color: #b5bfcc; font-style: italic; font-weight: 500; }
 
-    /* Línea 4 (solo FINAL/3RD-01): bono de posición Campeón/Subcampeón/3er puesto */
-    .p-bono { font-size: 0.70rem; color: #8d99a8; margin-top: 3px; }
-    .p-bono .bono-pts      { font-weight: 700; color: #2e7d32; }
-    .p-bono .bono-pts.zero { font-weight: 700; color: #9aa5b1; }
+    /* Línea 4 (solo FINAL/3RD-01): bono de posición Campeón/Subcampeón/3er puesto.
+       Mismo patrón que el resto de la tarjeta: etiqueta a la izquierda, puntos al final. */
+    .p-bono {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      font-size: 0.70rem; color: #8d99a8; margin-top: 3px;
+    }
+    .p-bono .bono-pts      { font-weight: 700; color: #2e7d32; flex-shrink: 0; }
+    .p-bono .bono-pts.zero { font-weight: 700; color: #9aa5b1; flex-shrink: 0; }
+    .p-bono .bono-pend     { color: #b5bfcc; font-style: italic; flex-shrink: 0; }
 
     .partido-fila .p-pts {
       font-weight: 700;
@@ -346,13 +350,19 @@
     .llave-equipos-nota { font-size: 0.65rem; color: #6b7a8d; margin-top: 3px; }
     .llave-equipos-nota b { color: #1565c0; }
 
-    /* Bono de posición (Campeón/Subcampeón/3er puesto) dentro de la tarjeta FINAL/3RD-01 */
+    /* Bono de posición (Campeón/Subcampeón/3er puesto) dentro de la tarjeta FINAL/3RD-01.
+       Badge de puntos al final de la línea, mismo estilo que .llave-pred-header .pts */
     .llave-bono {
+      display: flex; justify-content: space-between; align-items: center; gap: 6px;
       font-size: 0.65rem; color: #6b7a8d; margin-top: 4px; padding-top: 4px;
       border-top: 1px dashed #e3e8ef;
     }
-    .llave-bono .bono-pts      { font-weight: 700; color: #2e7d32; }
-    .llave-bono .bono-pts.zero { font-weight: 700; color: #9aa5b1; }
+    .llave-bono .bono-pts {
+      font-weight: 800; color: #fff; background: #2e7d32; border-radius: 3px;
+      padding: 1px 6px; font-size: 0.62rem; flex-shrink: 0;
+    }
+    .llave-bono .bono-pts.zero { background: #9aa5b1; }
+    .llave-bono .bono-pend     { color: #b5bfcc; font-style: italic; flex-shrink: 0; }
 
     /* ── Acordeón estadísticas ── */
     .ac-item {
@@ -1137,14 +1147,18 @@
   // Línea(s) de bono de posición (Campeón/Subcampeón/3er puesto) — solo aplica a los
   // partidos FINAL y 3RD-01, cuyo resultado define esos bonos (ver _armarBono en leaderboard.gs).
   // acierto === null → el partido que define el bono aún no se ha jugado (pendiente).
+  // Layout: etiqueta+equipo+check a la izquierda, puntos en badge a la derecha (mismo
+  // patrón que el resto de líneas con puntaje al final de la fila).
   function lineasBonoPartido(id, bonos, wrapClass) {
     if (!bonos) return '';
     function linea(icono, etiqueta, bono) {
       if (!bono) return '';
-      var estado = bono.acierto === null
-        ? '<span class="chk-pend">pendiente</span>'
-        : chkIcon(bono.acierto) + ' <span class="bono-pts' + (bono.pts > 0 ? '' : ' zero') + '">(+' + bono.pts + ' pts)</span>';
-      return '<div class="' + wrapClass + '">' + icono + ' Bono ' + etiqueta + ': ' + esc(bono.equipo) + ' ' + estado + '</div>';
+      var label = icono + ' Bono ' + etiqueta + ': ' + esc(bono.equipo) +
+        (bono.acierto === null ? '' : ' ' + chkIcon(bono.acierto));
+      var valor = bono.acierto === null
+        ? '<span class="bono-pend">pendiente</span>'
+        : '<span class="bono-pts' + (bono.pts > 0 ? '' : ' zero') + '">+' + bono.pts + ' pts</span>';
+      return '<div class="' + wrapClass + '"><span>' + label + '</span>' + valor + '</div>';
     }
     if (id === 'FINAL')  return linea('🏆', 'Campeón', bonos.campeon) + linea('🥈', 'Subcampeón', bonos.subcampeon);
     if (id === '3RD-01') return linea('🏅', '3er puesto', bonos.tercero);
@@ -1449,23 +1463,13 @@
       partidosHtml += '</div>';
     });
 
-    // Bonus de posición (si aplica)
-    var bonusHtml = '';
-    if (d.ptsBonos > 0) {
-      bonusHtml = '<div class="seccion-titulo">Bonus posición final</div>' +
-        '<div class="partidos-lista"><div class="partido-fila con-pts">' +
-        '<div class="p-info"><div class="p-equipos">Campeón / Subcampeón / 3er puesto</div></div>' +
-        '<span class="p-pts">' + d.ptsBonos + ' pts</span>' +
-        '</div></div>';
-    }
-
-    if (!partidosHtml && !bonusHtml) {
+    if (!partidosHtml) {
       partidosHtml = '<div class="partidos-lista"><div class="partido-fila sin-pts">' +
         '<div class="p-info"><div class="p-equipos">Sin partidos jugados aún</div></div>' +
         '<span class="p-pts">—</span></div></div>';
     }
 
-    return partidosHtml + bonusHtml;
+    return partidosHtml;
   }
 
   function cerrarModal(e) {
