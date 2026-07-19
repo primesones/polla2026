@@ -205,16 +205,14 @@
 
     .partidos-lista { margin-bottom: 20px; }
     .partido-fila {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
       padding: 9px 10px;
       border-radius: 6px;
       margin-bottom: 4px;
     }
     .partido-fila.con-pts { background: #e8f4fd; }
     .partido-fila.sin-pts { background: #f8f9fa; }
-    .partido-fila .p-info { flex: 1; min-width: 0; }
+    .p-row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .p-row .p-info { flex: 1; min-width: 0; }
 
     /* Línea 1: resultado real con banderas */
     .p-resultado {
@@ -1446,17 +1444,21 @@
         // Línea 3: verificaciones — solo checks; su conteo coincide con los pts del partido
         var lineaDesglose = lineaVerificaciones(predTeams, actTeams, pred, res, hasPred, localName, visitName);
 
-        // Línea 4 (solo FINAL/3RD-01): bono de posición (Campeón/Subcampeón/3er puesto)
+        // Línea 4 (solo FINAL/3RD-01): bono de posición (Campeón/Subcampeón/3er puesto).
+        // Va fuera de .p-info (que no cubre el ancho completo de la tarjeta, .p-pts es
+        // un hermano aparte) para que su badge de puntos quede alineado con .p-pts.
         var lineaBono = lineasBonoPartido(id, d.bonos, 'p-bono');
 
         partidosHtml += '<div class="' + cls + '">' +
-          '<div class="p-info">' +
-            lineaResultado +
-            lineaPred +
-            lineaDesglose +
-            lineaBono +
+          '<div class="p-row">' +
+            '<div class="p-info">' +
+              lineaResultado +
+              lineaPred +
+              lineaDesglose +
+            '</div>' +
+            '<span class="p-pts">' + pts + ' pts</span>' +
           '</div>' +
-          '<span class="p-pts">' + pts + ' pts</span>' +
+          lineaBono +
           '</div>';
       });
 
