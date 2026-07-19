@@ -271,6 +271,12 @@
 
     .chk-ok   { color: #2e7d32; font-weight: 600; }
     .chk-fail { color: #c62828; font-weight: 600; }
+    .chk-pend { color: #b5bfcc; font-style: italic; font-weight: 500; }
+
+    /* Línea 4 (solo FINAL/3RD-01): bono de posición Campeón/Subcampeón/3er puesto */
+    .p-bono { font-size: 0.70rem; color: #8d99a8; margin-top: 3px; }
+    .p-bono .bono-pts      { font-weight: 700; color: #2e7d32; }
+    .p-bono .bono-pts.zero { font-weight: 700; color: #9aa5b1; }
 
     .partido-fila .p-pts {
       font-weight: 700;
@@ -339,6 +345,14 @@
     .llave-team .chk { margin-left: 4px; font-size: 0.7rem; }
     .llave-equipos-nota { font-size: 0.65rem; color: #6b7a8d; margin-top: 3px; }
     .llave-equipos-nota b { color: #1565c0; }
+
+    /* Bono de posición (Campeón/Subcampeón/3er puesto) dentro de la tarjeta FINAL/3RD-01 */
+    .llave-bono {
+      font-size: 0.65rem; color: #6b7a8d; margin-top: 4px; padding-top: 4px;
+      border-top: 1px dashed #e3e8ef;
+    }
+    .llave-bono .bono-pts      { font-weight: 700; color: #2e7d32; }
+    .llave-bono .bono-pts.zero { font-weight: 700; color: #9aa5b1; }
 
     /* ── Acordeón estadísticas ── */
     .ac-item {
@@ -1120,6 +1134,23 @@
     return '<span class="' + (ok ? 'chk-ok' : 'chk-fail') + '">' + (ok ? '✓' : '✗') + '</span>';
   }
 
+  // Línea(s) de bono de posición (Campeón/Subcampeón/3er puesto) — solo aplica a los
+  // partidos FINAL y 3RD-01, cuyo resultado define esos bonos (ver _armarBono en leaderboard.gs).
+  // acierto === null → el partido que define el bono aún no se ha jugado (pendiente).
+  function lineasBonoPartido(id, bonos, wrapClass) {
+    if (!bonos) return '';
+    function linea(icono, etiqueta, bono) {
+      if (!bono) return '';
+      var estado = bono.acierto === null
+        ? '<span class="chk-pend">pendiente</span>'
+        : chkIcon(bono.acierto) + ' <span class="bono-pts' + (bono.pts > 0 ? '' : ' zero') + '">(+' + bono.pts + ' pts)</span>';
+      return '<div class="' + wrapClass + '">' + icono + ' Bono ' + etiqueta + ': ' + esc(bono.equipo) + ' ' + estado + '</div>';
+    }
+    if (id === 'FINAL')  return linea('🏆', 'Campeón', bonos.campeon) + linea('🥈', 'Subcampeón', bonos.subcampeon);
+    if (id === '3RD-01') return linea('🏅', '3er puesto', bonos.tercero);
+    return '';
+  }
+
   // Línea combinada (R16+): equipos predichos en la llave + marcador pronosticado, en un solo renglón.
   function lineaPronosticoEquipos(predTeams, actTeams, pred, hasPred) {
     var actualSet = {};
@@ -1289,12 +1320,16 @@
       }
     }
 
+    // Bono de posición (solo FINAL/3RD-01) — independiente de si ya se conocen los equipos reales.
+    var bloqueBono = lineasBonoPartido(id, d.bonos, 'llave-bono');
+
     if (!teams) {
       return '<div class="llave-match tbd">' +
         '<div class="meta"><span>' + esc(id) + '</span><span>Por definir</span></div>' +
         '<div class="llave-team tbd-name"><span class="code">Equipo A</span></div>' +
         '<div class="llave-team tbd-name"><span class="code">Equipo B</span></div>' +
         (hasPredTeams ? bloquePred : '<div class="llave-pred"><span class="nopred">predicción bloqueada hasta llenar bracket</span></div>') +
+        bloqueBono +
         '</div>';
     }
 
@@ -1314,7 +1349,7 @@
     return '<div class="llave-match' + (jugado ? '' : ' tbd') + '">' +
       '<div class="meta"><span>' + (jugado ? 'Finalizado' : 'Por jugar') + '</span>' +
       (et ? '<span class="et-tag">(90\')</span>' : '') + '</div>' +
-      rowLocal + rowVisit + bloquePred +
+      rowLocal + rowVisit + bloquePred + bloqueBono +
       '</div>';
   }
 
@@ -1397,11 +1432,15 @@
         // Línea 3: verificaciones — solo checks; su conteo coincide con los pts del partido
         var lineaDesglose = lineaVerificaciones(predTeams, actTeams, pred, res, hasPred, localName, visitName);
 
+        // Línea 4 (solo FINAL/3RD-01): bono de posición (Campeón/Subcampeón/3er puesto)
+        var lineaBono = lineasBonoPartido(id, d.bonos, 'p-bono');
+
         partidosHtml += '<div class="' + cls + '">' +
           '<div class="p-info">' +
             lineaResultado +
             lineaPred +
             lineaDesglose +
+            lineaBono +
           '</div>' +
           '<span class="p-pts">' + pts + ' pts</span>' +
           '</div>';
